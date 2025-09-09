@@ -10,7 +10,7 @@ android {
 
     defaultConfig {
         applicationId = "com.example.helium_2"
-        minSdk = 24
+        minSdk = 26
         targetSdk = 36
         versionCode = 1
         versionName = "1.0"
@@ -19,12 +19,18 @@ android {
     }
 
     buildTypes {
+        debug { isMinifyEnabled = true }
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true // Включение обфускации
+            isShrinkResources = true // Удаление неиспользуемых ресурсов
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            // Включение R8 (современная замена ProGuard)
+            isDebuggable = false
+            isJniDebuggable = false
+            isRenderscriptDebuggable = false
         }
     }
     compileOptions {
@@ -49,6 +55,9 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
+    implementation(libs.androidx.foundation)
+    implementation(libs.androidx.compose.material3)
+    implementation(libs.material.icons.extended)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
