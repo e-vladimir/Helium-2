@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
@@ -65,7 +64,7 @@ fun FrameMediaGroup(name: String = "") {
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(top = 24.dp, bottom = 4.dp)
+            .padding(top = 24.dp, bottom = 2.dp)
     ) {
         Text(text = name)
     }
@@ -75,7 +74,7 @@ fun FrameMediaGroup(name: String = "") {
 fun FrameMediaItem() {
     Box(
         modifier = Modifier
-            .padding(1.dp)
+            .padding(2.dp)
             .fillMaxWidth()
             .aspectRatio(1.0f)
             .background(Color.LightGray)
