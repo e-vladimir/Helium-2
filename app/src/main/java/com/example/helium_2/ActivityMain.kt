@@ -13,7 +13,6 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.outlined.Folder
 import androidx.compose.material.icons.outlined.Photo
@@ -60,7 +59,9 @@ fun FrameApp() {
     var menuExpanded by remember { mutableStateOf(false) }
     var currentPage by viewModelApp.currentPage
 
-    val pagerState = rememberPagerState(initialPage = currentPage) { 2 }
+    val folders = viewModelApp.folders
+
+    val pagerState = rememberPagerState(initialPage = currentPage) { if (folders.isNotEmpty()) 2 else 1 }
 
     LaunchedEffect(pagerState) {
         snapshotFlow { pagerState.currentPage }.collectLatest { page ->
@@ -137,16 +138,18 @@ fun FrameApp() {
                     onClick = { currentPage = 0 }
                 )
 
-                NavigationBarItem(
-                    selected = currentPage == 1,
-                    label = { Text(text = currentFolder) },
-                    icon = {
-                        Icon(
-                            imageVector = Icons.Outlined.Photo, contentDescription = "Лента"
-                        )
-                    },
-                    onClick = { currentPage = 1 }
-                )
+                if (folders.isNotEmpty()) {
+                    NavigationBarItem(
+                        selected = currentPage == 1,
+                        label = { Text(text = currentFolder) },
+                        icon = {
+                            Icon(
+                                imageVector = Icons.Outlined.Photo, contentDescription = "Лента"
+                            )
+                        },
+                        onClick = { currentPage = 1 }
+                    )
+                }
             }
         }
     ) { innerPadding ->
