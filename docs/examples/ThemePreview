@@ -1,0 +1,7 @@
+@Preview
+@Composable
+fun MyScreenPreview() {
+    YourTheme { // Ваша тема должна быть явно применена
+        MyScreen()
+    }
+}

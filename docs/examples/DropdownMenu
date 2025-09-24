@@ -1,0 +1,46 @@
+@Composable
+fun MainScreen() {
+    var menuExpanded by remember { mutableStateOf(false) }
+
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("Мое приложение") },
+                actions = {
+                    IconButton(onClick = { menuExpanded = true }) {
+                        Icon(Icons.Default.MoreVert, "Меню")
+                    }
+
+                    DropdownMenu(
+                        expanded = menuExpanded,
+                        onDismissRequest = { menuExpanded = false }
+                    ) {
+                        DropdownMenuItem(
+                            onClick = {
+                                menuExpanded = false
+                                // Навигация или действие
+                            },
+                            text = { Text("Профиль") }
+                        )
+                        DropdownMenuItem(
+                            onClick = {
+                                menuExpanded = false
+                                // Навигация или действие
+                            },
+                            text = { Text("Настройки") }
+                        )
+                    }
+                }
+            )
+        }
+    ) { paddingValues ->
+        // Контент экрана
+        Box(
+            modifier = Modifier
+                .padding(paddingValues)
+                .fillMaxSize()
+        ) {
+            Text("Контент страницы")
+        }
+    }
+}

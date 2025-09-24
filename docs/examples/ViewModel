@@ -1,0 +1,56 @@
+class PagerViewModel : ViewModel() {
+    private val _currentPage = mutableIntStateOf(0)
+    val currentPage: State<Int> = _currentPage
+
+    fun setPage(page: Int) {
+        _currentPage.intValue = page
+    }
+
+    fun navigateToNext() {
+        _currentPage.intValue++
+    }
+
+    fun navigateToPrevious() {
+        _currentPage.intValue--
+    }
+}
+
+@Composable
+fun MainScreen(viewModel: PagerViewModel = hiltViewModel()) {
+    val currentPage by viewModel.currentPage
+
+    HorizontalPager(
+        pageCount = 5,
+        state = rememberPagerState(initialPage = currentPage)
+    ) { page ->
+        // Ваш контент
+    }
+
+    // Обновляем состояние при изменении pager
+    LaunchedEffect(currentPage) {
+        pagerState.scrollToPage(currentPage)
+    }
+}
+
+@Composable
+fun ControlPanel(viewModel: PagerViewModel = hiltViewModel()) {
+    val currentPage by viewModel.currentPage
+
+    Row {
+        Button(
+            onClick = { viewModel.navigateToPrevious() },
+            enabled = currentPage > 0
+        ) {
+            Text("Назад")
+        }
+
+        Text("Страница: ${currentPage + 1}")
+
+        Button(
+            onClick = { viewModel.navigateToNext() },
+            enabled = currentPage < 4
+        ) {
+            Text("Вперед")
+        }
+    }
+}

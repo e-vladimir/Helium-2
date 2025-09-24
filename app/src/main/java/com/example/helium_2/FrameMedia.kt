@@ -18,37 +18,41 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+
+
+val dTimes = listOf(
+    LocalDate.of(2025, 1, 1),
+    LocalDate.of(2025, 2, 3),
+    LocalDate.of(2025, 3, 5),
+    LocalDate.of(2025, 4, 10),
+    LocalDate.of(2025, 5, 23),
+    LocalDate.of(2025, 6, 30),
+    LocalDate.of(2025, 7, 2),
+    LocalDate.of(2025, 8, 12),
+    LocalDate.of(2025, 9, 21),
+    LocalDate.of(2025, 10, 31),
+    LocalDate.of(2025, 11, 11),
+    LocalDate.of(2025, 12, 1),
+)
+
 
 @Preview
 @Composable
 fun FrameMedia(modifier: Modifier = Modifier) {
-    val dtimes = listOf(
-        LocalDate.of(2025, 1, 1),
-        LocalDate.of(2025, 2, 3),
-        LocalDate.of(2025, 3, 5),
-        LocalDate.of(2025, 4, 10),
-        LocalDate.of(2025, 5, 23),
-        LocalDate.of(2025, 6, 30),
-        LocalDate.of(2025, 7, 2),
-        LocalDate.of(2025, 8, 12),
-        LocalDate.of(2025, 9, 21),
-        LocalDate.of(2025, 10, 31),
-        LocalDate.of(2025, 11, 11),
-        LocalDate.of(2025, 12, 1),
-    )
     LazyVerticalGrid(
         columns = GridCells.Fixed(4),
         modifier = modifier
             .fillMaxSize()
-            .padding(4.dp)
+            .padding(start = 16.dp, top = 4.dp, end = 16.dp, bottom = 4.dp)
     ) {
-        dtimes.forEach { dtime ->
+        dTimes.forEach { dTime ->
             item(span = { GridItemSpan(4) }) {
-                val group_name =
-                    dtime.format(DateTimeFormatter.ofPattern("dd MMMM yyyy")).replace(".", "")
-                FrameMediaGroup(group_name)
+                val groupName =
+                    dTime.format(DateTimeFormatter.ofPattern("dd MMMM yyyy")).replace(".", "")
+                FrameMediaGroup(groupName)
             }
 
             val files = List((1..10).random()) { "" }
@@ -74,7 +78,7 @@ fun FrameMediaGroup(name: String = "") {
 fun FrameMediaItem() {
     Box(
         modifier = Modifier
-            .padding(2.dp)
+            .padding(1.dp)
             .fillMaxWidth()
             .aspectRatio(1.0f)
             .background(Color.LightGray)
