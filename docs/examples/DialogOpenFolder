@@ -1,0 +1,131 @@
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
+
+@Composable
+fun SystemDirectoryPickerExample() {
+    val context = LocalContext.current
+    var selectedDirectory by remember { mutableStateOf<Uri?>(null) }
+    var directoryPath by remember { mutableStateOf("") }
+
+    // Launcher для системного диалога выбора каталога
+    val directoryPickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenDocumentTree()
+    ) { uri: Uri? ->
+        uri?.let {
+            selectedDirectory = it
+
+            // Получаем путь к каталогу
+            directoryPath = getDirectoryPath(context, it)
+
+            // Запрашиваем постоянные разрешения на доступ к URI
+            try {
+                context.contentResolver.takePersistableUriPermission(
+                    it,
+                    Intent.FLAG_GRANT_READ_URI_PERMISSION or
+                    Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+                )
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        // Кнопка для вызова системного диалога
+        Button(
+            onClick = {
+                // Запускаем системный диалог выбора каталога
+                directoryPickerLauncher.launch(null)
+            },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("Выбрать каталог")
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        // Отображение выбранного каталога
+        if (selectedDirectory != null) {
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+            ) {
+                Column(
+                    modifier = Modifier.padding(16.dp)
+                ) {
+                    Text(
+                        text = "Выбранный каталог:",
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = directoryPath,
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                    Text(
+                        text = "URI: ${selectedDirectory}",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Кнопка для работы с выбранным каталогом
+            Button(
+                onClick = {
+                    selectedDirectory?.let { uri ->
+                        // Здесь можно выполнить операции с выбранным каталогом
+                        // Например, получить список файлов
+                        val files = getFilesFromDirectory(context, uri)
+                        // Обработать файлы...
+                    }
+                }
+            ) {
+                Text("Работать с каталогом")
+            }
+        } else {
+            Text(
+                text = "Каталог не выбран",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    }
+}
+
+// Вспомогательная функция для получения пути каталога
+private fun getDirectoryPath(context: Context, uri: Uri): String {
+    return try {
+        // Пытаемся получить реальный путь
+        val file = DocumentFile.fromTreeUri(context, uri)
+        file?.name ?: uri.toString()
+    } catch (e: Exception) {
+        uri.toString()
+    }
+}
+
+// Функция для получения файлов из каталога
+private fun getFilesFromDirectory(context: Context, directoryUri: Uri): List<DocumentFile> {
+    return try {
+        val directory = DocumentFile.fromTreeUri(context, directoryUri)
+        directory?.listFiles()?.toList() ?: emptyList()
+    } catch (e: Exception) {
+        emptyList()
+    }
+}

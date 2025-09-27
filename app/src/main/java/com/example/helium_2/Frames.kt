@@ -44,7 +44,7 @@ import java.time.format.DateTimeFormatter
 
 @Composable
 fun FrameFolders(modifier: Modifier = Modifier) {
-    val folders = viewModelApp.folders
+    val folders = viewModelApp.foldersNames()
 
     if (folders.isNotEmpty()) {
         Column(
@@ -121,7 +121,6 @@ fun FoldersPreview() {
 }
 
 
-@Preview
 @Composable
 fun FrameMedia(modifier: Modifier = Modifier) {
     val mediaDTimes = viewModelApp.mediaDTimes

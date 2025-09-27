@@ -58,6 +58,8 @@ dependencies {
     implementation(libs.androidx.foundation)
     implementation(libs.androidx.compose.material3)
     implementation(libs.material.icons.extended)
+    implementation(libs.androidx.datastore.core)
+    implementation(libs.androidx.datastore.preferences)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

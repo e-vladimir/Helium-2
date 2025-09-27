@@ -1,0 +1,64 @@
+Step 2: Creating the DataStore Instance
+To create a DataStore instance, you will typically do this in your Application class:
+
+import androidx.datastore.preferences.preferencesDataStore
+import android.app.Application
+
+class MyApplication : Application() {
+    val Context.dataStore by preferencesDataStore(name = "settings")
+}
+Step 3: Saving Data in Preferences DataStore
+You can use Kotlin Coroutines to save data asynchronously. Here’s how to define a function to save user preferences:
+
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.stringPreferencesKey
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
+
+suspend fun saveUserName(userName: String, context: Context) {
+    val USER_NAME_KEY = stringPreferencesKey("user_name")
+    context.dataStore.edit { preferences ->
+        preferences[USER_NAME_KEY] = userName
+    }
+}
+When using suspend functions, remember these should be called from a coroutine context, such as a ViewModel or a Composable function that is launched in the scope.
+
+Step 4: Retrieving Data from Preferences DataStore
+To retrieve the saved data, leverage the Flow API provided by DataStore:
+
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
+
+fun getUserName(context: Context): Flow<String?> {
+    val USER_NAME_KEY = stringPreferencesKey("user_name")
+    return context.dataStore.data
+        .map { preferences -> preferences[USER_NAME_KEY] }
+}
+Integrating DataStore with Jetpack Compose
+Integrating DataStore within Jetpack Compose allows for reactive UI updates. Here’s how you can tie it all together in a Composable function:
+
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.launch
+
+@Composable
+fun UserNameScreen() {
+    val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
+    val userNameFlow = getUserName(context).collectAsState(initial = null)
+
+    Column {
+        TextField(
+            value = userNameFlow.value ?: "",
+            onValueChange = { newUserName ->
+                coroutineScope.launch {
+                    saveUserName(newUserName, context)
+                }
+            },
+            label = { Text("Enter your name") }
+        )
+        Text("Hello, ${userNameFlow.value}")
+    }
+}

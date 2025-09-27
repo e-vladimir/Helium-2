@@ -1,10 +1,15 @@
 package com.example.helium_2
 
+import android.content.Context
+import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -34,11 +39,18 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.preferencesDataStore
 
 import com.example.helium_2.ui.theme.Helium2Theme
 
 import kotlinx.coroutines.flow.collectLatest
+
+
+val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "settings")
 
 
 class ActivityMain : ComponentActivity() {
@@ -55,13 +67,36 @@ class ActivityMain : ComponentActivity() {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FrameApp() {
+    val context = LocalContext.current
+    val folders = viewModelApp.folders
     var currentFolder by viewModelApp.currentFolder
     var menuExpanded by remember { mutableStateOf(false) }
     var currentPage by viewModelApp.currentPage
+    var loadingFolders by remember { mutableStateOf(true) }
+    var savingFolder by remember { mutableStateOf(false) }
 
-    val folders = viewModelApp.folders
 
-    val pagerState = rememberPagerState(initialPage = currentPage) { if (folders.isNotEmpty()) 2 else 1 }
+    val directoryPickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenDocumentTree()
+    ) { uri: Uri? ->
+        uri?.let {
+            try {
+                context.contentResolver.takePersistableUriPermission(
+                    it,
+                    Intent.FLAG_GRANT_READ_URI_PERMISSION or
+                            Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+                )
+
+                folders.add(it.toString())
+
+                savingFolder = true
+            } catch (e: Exception) {
+            }
+        }
+    }
+
+    val pagerState =
+        rememberPagerState(initialPage = currentPage) { if (currentFolder.isNotEmpty()) 2 else 1 }
 
     LaunchedEffect(pagerState) {
         snapshotFlow { pagerState.currentPage }.collectLatest { page ->
@@ -74,6 +109,20 @@ fun FrameApp() {
     LaunchedEffect(currentPage) {
         if (pagerState.currentPage != currentPage) {
             pagerState.animateScrollToPage(currentPage)
+        }
+    }
+
+    LaunchedEffect(loadingFolders) {
+        if (loadingFolders) {
+            viewModelApp.loadFolders(context)
+            loadingFolders = false
+        }
+    }
+
+    LaunchedEffect(savingFolder) {
+        if (savingFolder) {
+            viewModelApp.saveFolders(context)
+            savingFolder = false
         }
     }
 
@@ -94,7 +143,9 @@ fun FrameApp() {
                 actions = {
                     when (currentPage) {
                         0 -> {
-                            IconButton(onClick = {}) {
+                            IconButton(onClick = {
+                                directoryPickerLauncher.launch(null)
+                            }) {
                                 Icon(
                                     imageVector = Icons.Default.Add,
                                     contentDescription = null
@@ -138,7 +189,7 @@ fun FrameApp() {
                     onClick = { currentPage = 0 }
                 )
 
-                if (folders.isNotEmpty()) {
+                if (currentFolder.isNotEmpty()) {
                     NavigationBarItem(
                         selected = currentPage == 1,
                         label = { Text(text = currentFolder) },
