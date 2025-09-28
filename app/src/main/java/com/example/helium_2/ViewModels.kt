@@ -25,7 +25,7 @@ class ViewModelApp() : ViewModel() {
     var currentFolder = mutableStateOf("")
 
     fun foldersNames(): List<String> {
-        return folders.map { folder -> folder.toString().replace("%3A", "/").replace("%2F", "/").split("/").last() }
+        return folders.map { folder -> folder.replace("%3A", "/").replace("%2F", "/").split("/").last() }.sorted()
     }
 
     suspend fun saveFolders(appContext: Context) {
@@ -43,6 +43,11 @@ class ViewModelApp() : ViewModel() {
                 else data.split("\n")
             }.first()
         )
+    }
+
+    fun forgotCurrentFolder() {
+        folders.removeIf { it -> it.contains(currentFolder.value)}
+        currentFolder.value = ""
     }
 }
 

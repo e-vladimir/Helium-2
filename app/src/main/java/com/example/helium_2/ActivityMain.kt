@@ -21,6 +21,8 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.outlined.Folder
 import androidx.compose.material.icons.outlined.Photo
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -30,6 +32,7 @@ import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -69,12 +72,13 @@ class ActivityMain : ComponentActivity() {
 fun FrameApp() {
     val context = LocalContext.current
     val folders = viewModelApp.folders
+
     var currentFolder by viewModelApp.currentFolder
-    var menuExpanded by remember { mutableStateOf(false) }
     var currentPage by viewModelApp.currentPage
     var loadingFolders by remember { mutableStateOf(true) }
+    var menuExpanded by remember { mutableStateOf(false) }
     var savingFolder by remember { mutableStateOf(false) }
-
+    var forgetFolder by remember { mutableStateOf(false) }
 
     val directoryPickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.OpenDocumentTree()
@@ -90,7 +94,7 @@ fun FrameApp() {
                 folders.add(it.toString())
 
                 savingFolder = true
-            } catch (e: Exception) {
+            } catch (_: Exception) {
             }
         }
     }
@@ -124,6 +128,26 @@ fun FrameApp() {
             viewModelApp.saveFolders(context)
             savingFolder = false
         }
+    }
+
+    if (forgetFolder) {
+        AlertDialog(
+            onDismissRequest = {
+                forgetFolder = false
+            },
+            title = { Text(text = "Забыть каталог?") },
+            text = { Text(text = "Забыть $currentFolder?") },
+            confirmButton = {
+                TextButton(onClick = {
+                    forgetFolder = false
+                    viewModelApp.forgotCurrentFolder()
+                    savingFolder = true
+                }) { Text("Забыть") }
+            },
+            dismissButton = {
+                TextButton(onClick = { forgetFolder = false }) { Text("Отмена") }
+            }
+        )
     }
 
     Scaffold(
@@ -168,9 +192,12 @@ fun FrameApp() {
                         onDismissRequest = { menuExpanded = false }
                     ) {
                         DropdownMenuItem(
-                            onClick = { menuExpanded = false },
+                            onClick = {
+                                menuExpanded = false
+                                forgetFolder = true
+                            },
                             leadingIcon = { Icon(Icons.Default.Delete, contentDescription = null) },
-                            text = { Text("Убрать каталог") }
+                            text = { Text("Забыть каталог") }
                         )
                     }
                 }
