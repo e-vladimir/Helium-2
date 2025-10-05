@@ -15,17 +15,25 @@ import kotlinx.coroutines.flow.map
 
 import java.time.LocalDate
 
-val KEY_FOLDERS = stringPreferencesKey("key_folders")
 
 class ViewModelApp() : ViewModel() {
+    val KEY_FOLDERS = stringPreferencesKey("key_folders")
 
     var folders = mutableStateListOf<String>()
-    var mediaDTimes = mutableStateListOf<LocalDate>()
-    var currentPage = mutableIntStateOf(if (folders.isNotEmpty()) 1 else 0)
     var currentFolder = mutableStateOf("")
 
+    //    var currentPage    = mutableIntStateOf(if (folders.isNotEmpty()) 1 else 0)
+    var currentPage = mutableIntStateOf(0)
+    var forgetFolder = mutableStateOf(false)
+    var loadingFolders = mutableStateOf(true)
+    var mediaDTimes = mutableStateListOf<LocalDate>()
+    var menuExpanded = mutableStateOf(false)
+    var savingFolder = mutableStateOf(false)
+
     fun foldersNames(): List<String> {
-        return folders.map { folder -> folder.replace("%3A", "/").replace("%2F", "/").split("/").last() }.sorted()
+        return folders.map { folder ->
+            folder.replace("%3A", "/").replace("%2F", "/").split("/").last()
+        }.sorted()
     }
 
     suspend fun saveFolders(appContext: Context) {
@@ -39,14 +47,14 @@ class ViewModelApp() : ViewModel() {
         folders.addAll(
             appContext.dataStore.data.map { preferences ->
                 val data = preferences[KEY_FOLDERS] ?: ""
-                if (data.isEmpty()) emptyList()
-                else data.split("\n")
+
+                if (data.isEmpty()) emptyList() else data.split("\n")
             }.first()
         )
     }
 
     fun forgotCurrentFolder() {
-        folders.removeIf { it -> it.contains(currentFolder.value)}
+        folders.removeIf { it -> it.contains(currentFolder.value) }
         currentFolder.value = ""
     }
 }

@@ -50,7 +50,12 @@ fun FrameFolders(modifier: Modifier = Modifier) {
         Column(
             modifier = modifier
                 .fillMaxSize()
-                .padding(start = 20.dp, end = 20.dp, bottom = 10.dp, top = 10.dp)
+                .padding(
+                    bottom = 10.dp,
+                    end = 20.dp,
+                    start = 20.dp,
+                    top = 10.dp
+                )
         ) {
             folders.forEach { folder -> FrameFoldersItem(folder) }
             Spacer(modifier = Modifier.weight(1f))
@@ -129,7 +134,12 @@ fun FrameMedia(modifier: Modifier = Modifier) {
         columns = GridCells.Fixed(4),
         modifier = modifier
             .fillMaxSize()
-            .padding(start = 16.dp, top = 4.dp, end = 16.dp, bottom = 4.dp)
+            .padding(
+                bottom = 4.dp,
+                end = 16.dp,
+                start = 16.dp,
+                top = 4.dp
+            )
     ) {
         mediaDTimes.forEach { dTime ->
             item(span = { GridItemSpan(4) }) {
@@ -151,7 +161,10 @@ fun FrameMediaGroup(name: String = "") {
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(top = 24.dp, bottom = 2.dp)
+            .padding(
+                top = 24.dp,
+                bottom = 2.dp
+            )
     ) {
         Text(text = name)
     }
