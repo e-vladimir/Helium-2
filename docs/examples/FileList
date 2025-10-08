@@ -1,0 +1,20 @@
+fun getFilesList(directoryPath: String): List<File> {
+    return try {
+            val directory = File(directoryPath)
+
+        if (!directory.exists()) {
+            println("Директория не существует: $directoryPath")
+            return emptyList()
+        }
+
+        if (!directory.isDirectory) {
+            println("Указанный путь не является директорией: $directoryPath")
+            return emptyList()
+        }
+
+        directory.listFiles()?.toList() ?: emptyList()
+    } catch (e: SecurityException) {
+        println("Нет прав доступа к директории: $directoryPath")
+        emptyList()
+    }
+}
