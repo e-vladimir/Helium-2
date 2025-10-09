@@ -14,7 +14,9 @@ import com.example.helium_2.ui.theme.Helium2Theme
 class ActivityMain : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
         enableEdgeToEdge()
+
         setContent {
             Helium2Theme { FrameApp() }
         }
