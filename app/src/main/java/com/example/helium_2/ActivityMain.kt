@@ -11,6 +11,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.example.helium_2.ui.theme.Helium2Theme
 
 
+val viewModelApp = ViewModelApp()
+
+
 class ActivityMain : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
