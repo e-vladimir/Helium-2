@@ -21,16 +21,14 @@ android {
     buildTypes {
         debug { isMinifyEnabled = true }
         release {
-            isMinifyEnabled = true // Включение обфускации
-            isShrinkResources = true // Удаление неиспользуемых ресурсов
+            isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            // Включение R8 (современная замена ProGuard)
             isDebuggable = false
             isJniDebuggable = false
-            isRenderscriptDebuggable = false
         }
     }
     compileOptions {
@@ -61,6 +59,7 @@ dependencies {
     implementation(libs.androidx.datastore.core)
     implementation(libs.androidx.datastore.preferences)
     implementation(libs.androidx.documentfile)
+    implementation("com.google.errorprone:error_prone_annotations:2.23.0")
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
