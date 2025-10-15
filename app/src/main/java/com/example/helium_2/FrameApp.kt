@@ -2,11 +2,17 @@
 
 package com.example.helium_2
 
+import android.content.Intent
+import android.net.Uri
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 
 import androidx.compose.material.icons.Icons
@@ -15,6 +21,7 @@ import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Folder
 import androidx.compose.material3.Card
+import androidx.compose.material3.CircularProgressIndicator
 
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -35,10 +42,12 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.text.isDigitsOnly
 
 import kotlinx.coroutines.launch
 
@@ -94,13 +103,19 @@ fun FrameFolders() {
 
 @Composable
 fun FoldersHeader() {
-    Card(modifier = Modifier
-        .padding(16.dp)
-        .fillMaxWidth()) {
+    Card(
+        modifier = Modifier
+            .padding(16.dp)
+            .fillMaxWidth()
+    ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(text = "Helium-2", fontSize = 18.sp, fontWeight = FontWeight.Bold)
             Spacer(modifier = Modifier.height(4.dp))
-            Text(text = "Версия от 14 окт 2025", fontSize = 11.sp, color = MaterialTheme.colorScheme.outline)
+            Text(
+                text = "Версия от 15 окт 2025",
+                fontSize = 11.sp,
+                color = MaterialTheme.colorScheme.outline
+            )
         }
 
     }
@@ -108,6 +123,26 @@ fun FoldersHeader() {
 
 @Composable
 fun ButtonAddFolder() {
+    val context = LocalContext.current
+
+    val directoryPickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenDocumentTree()
+    ) { uri: Uri? ->
+        uri?.let {
+            try {
+                context.contentResolver.takePersistableUriPermission(
+                    it,
+                    Intent.FLAG_GRANT_READ_URI_PERMISSION or
+                            Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+                )
+
+                viewModelApp.appendFolder(it)
+            } catch (e: Exception) {
+                Toast.makeText(context, e.toString(), Toast.LENGTH_LONG).show()
+            }
+        }
+    }
+
     NavigationDrawerItem(
         label = {
             Text(text = "Добавить каталог", color = MaterialTheme.colorScheme.primary)
@@ -117,7 +152,10 @@ fun ButtonAddFolder() {
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.primary
             )
-        }, badge = { }, onClick = { }
+        },
+        badge = { }, onClick = {
+            directoryPickerLauncher.launch(null)
+        }
     )
 }
 
@@ -133,8 +171,12 @@ fun ButtonFolder(folder: String, count: String) {
             contentDescription = null
         )
     }, badge = {
-        Text(
-            text = count, fontSize = 10.sp, color = MaterialTheme.colorScheme.outline
-        )
+        if (count.isDigitsOnly()) {
+            Text(
+                text = count, fontSize = 10.sp, color = MaterialTheme.colorScheme.outline
+            )
+        } else {
+            CircularProgressIndicator(modifier = Modifier.size(16.dp))
+        }
     }, onClick = { currentFolder = folder })
 }
