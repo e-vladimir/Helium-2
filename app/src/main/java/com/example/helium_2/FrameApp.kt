@@ -5,8 +5,10 @@ package com.example.helium_2
 import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
+
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -47,6 +49,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+
 import androidx.core.text.isDigitsOnly
 
 import kotlinx.coroutines.launch
@@ -93,7 +96,7 @@ fun FrameFolders() {
         FoldersHeader()
 
         Column(modifier = Modifier.padding(horizontal = 16.dp)) {
-            foldersCounters.forEach { (folder, count) -> ButtonFolder(folder, count) }
+            foldersCounters.toSortedMap().forEach { (folder, count) -> ButtonFolder(folder, count) }
 
             ButtonAddFolder()
         }
@@ -112,7 +115,7 @@ fun FoldersHeader() {
             Text(text = "Helium-2", fontSize = 18.sp, fontWeight = FontWeight.Bold)
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = "Версия от 15 окт 2025",
+                text = "Версия от 16 окт 2025",
                 fontSize = 11.sp,
                 color = MaterialTheme.colorScheme.outline
             )
@@ -124,6 +127,7 @@ fun FoldersHeader() {
 @Composable
 fun ButtonAddFolder() {
     val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
 
     val directoryPickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.OpenDocumentTree()
@@ -132,31 +136,31 @@ fun ButtonAddFolder() {
             try {
                 context.contentResolver.takePersistableUriPermission(
                     it,
-                    Intent.FLAG_GRANT_READ_URI_PERMISSION or
-                            Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+                    Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
                 )
 
-                viewModelApp.appendFolder(it)
+                coroutineScope.launch {
+                    viewModelApp.appendFolderPath(it)
+                    viewModelApp.saveFoldersPaths(context)
+                }
+
             } catch (e: Exception) {
                 Toast.makeText(context, e.toString(), Toast.LENGTH_LONG).show()
             }
         }
     }
 
-    NavigationDrawerItem(
-        label = {
-            Text(text = "Добавить каталог", color = MaterialTheme.colorScheme.primary)
-        }, selected = false, icon = {
-            Icon(
-                imageVector = Icons.Outlined.Add,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary
-            )
-        },
-        badge = { }, onClick = {
-            directoryPickerLauncher.launch(null)
-        }
-    )
+    NavigationDrawerItem(label = {
+        Text(text = "Добавить каталог", color = MaterialTheme.colorScheme.primary)
+    }, selected = false, icon = {
+        Icon(
+            imageVector = Icons.Outlined.Add,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.primary
+        )
+    }, badge = { }, onClick = {
+        directoryPickerLauncher.launch(null)
+    })
 }
 
 
@@ -176,7 +180,7 @@ fun ButtonFolder(folder: String, count: String) {
                 text = count, fontSize = 10.sp, color = MaterialTheme.colorScheme.outline
             )
         } else {
-            CircularProgressIndicator(modifier = Modifier.size(16.dp))
+            CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp)
         }
     }, onClick = { currentFolder = folder })
 }
