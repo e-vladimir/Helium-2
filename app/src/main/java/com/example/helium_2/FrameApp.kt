@@ -118,7 +118,7 @@ fun FoldersHeader() {
             Text(text = "Helium-2", fontSize = 18.sp, fontWeight = FontWeight.Bold)
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = "Версия от {$VERSION}",
+                text = "Версия от $VERSION",
                 fontSize = 11.sp,
                 color = MaterialTheme.colorScheme.outline
             )
