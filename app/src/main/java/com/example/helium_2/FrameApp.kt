@@ -55,6 +55,9 @@ import androidx.core.text.isDigitsOnly
 import kotlinx.coroutines.launch
 
 
+const val VERSION = "17 окт 2025"
+
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FrameApp() {
@@ -88,7 +91,7 @@ fun FrameApp() {
 @Preview
 @Composable
 fun FrameFolders() {
-    val foldersCounters = viewModelApp.foldersCounters
+    val foldersCounters = viewModelApp.folderCounters
 
     ModalDrawerSheet(
         modifier = Modifier.statusBarsPadding()
@@ -115,7 +118,7 @@ fun FoldersHeader() {
             Text(text = "Helium-2", fontSize = 18.sp, fontWeight = FontWeight.Bold)
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = "Версия от 16 окт 2025",
+                text = "Версия от {$VERSION}",
                 fontSize = 11.sp,
                 color = MaterialTheme.colorScheme.outline
             )
@@ -142,6 +145,7 @@ fun ButtonAddFolder() {
                 coroutineScope.launch {
                     viewModelApp.appendFolderPath(it)
                     viewModelApp.saveFoldersPaths(context)
+                    viewModelApp.updateCounts(context)
                 }
 
             } catch (e: Exception) {

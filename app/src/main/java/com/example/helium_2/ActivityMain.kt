@@ -31,7 +31,10 @@ class ActivityMain : ComponentActivity() {
 
         enableEdgeToEdge()
 
-        lifecycleScope.launch {viewModelApp.loadFoldersPaths(this@ActivityMain) }
+        lifecycleScope.launch {
+            viewModelApp.loadFoldersPaths(this@ActivityMain)
+            viewModelApp.updateCounts(this@ActivityMain)
+        }
 
         setContent {
             Helium2Theme { FrameApp() }
