@@ -31,6 +31,7 @@ class ViewModelApp : ViewModel() {
     var folderPaths = mutableListOf<Uri>()
     var folderProcessors = mutableMapOf<String, FolderProcessor>()
     var leftPanelVisible = mutableStateOf(false)
+    var menuFolderVisible = mutableStateOf(false)
 
     fun appendFolderPath(folderPath: Uri) {
         if (folderPath in folderPaths) return

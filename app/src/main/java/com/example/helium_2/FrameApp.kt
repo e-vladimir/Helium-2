@@ -20,12 +20,16 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Folder
+import androidx.compose.material.icons.outlined.HideImage
 
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DrawerValue
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -109,7 +113,38 @@ fun FrameAppHeaderNavigationIcon() {
 
 @Composable
 fun FrameAppHeaderActions() {
+    val appHeader by viewModelApp.appHeader
 
+    if (appHeader == "Helium-2") return
+
+    var menuFolderVisible by viewModelApp.menuFolderVisible
+
+    IconButton(onClick = { menuFolderVisible = true }) {
+        Icon(Icons.Default.MoreVert, "Меню")
+    }
+
+    MenuFolder()
+}
+
+@Composable
+fun MenuFolder() {
+    var menuFolderVisible by viewModelApp.menuFolderVisible
+
+    DropdownMenu(
+        expanded = menuFolderVisible,
+        onDismissRequest = { menuFolderVisible = false }
+    ) {
+        DropdownMenuItem(
+            onClick = { menuFolderVisible = false },
+            text = { Text("Забыть каталог") },
+            leadingIcon = {
+                Icon(
+                    imageVector = Icons.Outlined.HideImage,
+                    contentDescription = null
+                )
+            }
+        )
+    }
 }
 
 
