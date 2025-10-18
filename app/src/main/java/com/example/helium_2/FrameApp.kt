@@ -22,9 +22,9 @@ import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Folder
+
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
-
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -39,6 +39,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberDrawerState
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
@@ -46,7 +47,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
@@ -55,40 +55,64 @@ import androidx.core.text.isDigitsOnly
 import kotlinx.coroutines.launch
 
 
-const val VERSION = "17 окт 2025"
+const val VERSION = "18 окт 2025"
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FrameApp() {
     val leftPanelState = rememberDrawerState(initialValue = DrawerValue.Closed)
-    val frameScope = rememberCoroutineScope()
+    var leftPanelVisible by viewModelApp.leftPanelVisible
+
+    LaunchedEffect(leftPanelVisible) {
+        if (leftPanelState.isClosed and leftPanelVisible) leftPanelState.open()
+        else if (leftPanelState.isOpen and !leftPanelVisible) leftPanelState.close()
+    }
+
+    LaunchedEffect(leftPanelState.currentValue) {
+        leftPanelVisible = leftPanelState.isOpen
+    }
+
 
     ModalNavigationDrawer(
-        drawerContent = {
-            FrameFolders()
-        }, drawerState = leftPanelState
+        drawerContent = { FrameFolders() },
+        drawerState = leftPanelState
     ) {
-        Scaffold(
-            topBar = {
-                TopAppBar(title = { Text("Helium-2") }, navigationIcon = {
-                    IconButton(onClick = {
-                        frameScope.launch {
-                            if (leftPanelState.isClosed) leftPanelState.open()
-                            else leftPanelState.close()
-                        }
-                    }) {
-                        Icon(Icons.Default.Menu, contentDescription = "Menu")
-                    }
-                })
-            }) { innerPadding ->
+        Scaffold(topBar = { FrameAppTopBar() }) { innerPadding ->
             FrameMedia(modifier = Modifier.padding(innerPadding))
         }
     }
 }
 
 
-@Preview
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun FrameAppTopBar() {
+    val appHeader by viewModelApp.appHeader
+
+    TopAppBar(
+        title = { Text(appHeader) },
+        navigationIcon = { FrameAppHeaderNavigationIcon() },
+        actions = { FrameAppHeaderActions() })
+}
+
+
+@Composable
+fun FrameAppHeaderNavigationIcon() {
+    var leftPanelVisible by viewModelApp.leftPanelVisible
+
+    IconButton(onClick = { leftPanelVisible = true }) {
+        Icon(Icons.Default.Menu, contentDescription = "Menu")
+    }
+}
+
+
+@Composable
+fun FrameAppHeaderActions() {
+
+}
+
+
 @Composable
 fun FrameFolders() {
     val foldersCounters = viewModelApp.folderCounters
@@ -115,7 +139,11 @@ fun FoldersHeader() {
             .fillMaxWidth()
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            Text(text = "Helium-2", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+            Text(
+                text = "Helium-2",
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold
+            )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
                 text = "Версия от $VERSION",
@@ -126,6 +154,7 @@ fun FoldersHeader() {
 
     }
 }
+
 
 @Composable
 fun ButtonAddFolder() {
@@ -155,22 +184,22 @@ fun ButtonAddFolder() {
     }
 
     NavigationDrawerItem(label = {
-        Text(text = "Добавить каталог", color = MaterialTheme.colorScheme.primary)
+        Text(
+            text = "Добавить каталог", color = MaterialTheme.colorScheme.primary
+        )
     }, selected = false, icon = {
         Icon(
             imageVector = Icons.Outlined.Add,
             contentDescription = null,
             tint = MaterialTheme.colorScheme.primary
         )
-    }, badge = { }, onClick = {
-        directoryPickerLauncher.launch(null)
-    })
+    }, badge = { }, onClick = { directoryPickerLauncher.launch(null) })
 }
 
 
 @Composable
 fun ButtonFolder(folder: String, count: String) {
-    var currentFolder by viewModelApp.currentFolder
+    var currentFolder by viewModelApp.appHeader
     val selected = currentFolder == folder
 
     NavigationDrawerItem(label = { Text(folder) }, selected = selected, icon = {
@@ -184,7 +213,11 @@ fun ButtonFolder(folder: String, count: String) {
                 text = count, fontSize = 10.sp, color = MaterialTheme.colorScheme.outline
             )
         } else {
-            CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp)
+            CircularProgressIndicator(
+                modifier = Modifier.size(16.dp), strokeWidth = 2.dp
+            )
         }
-    }, onClick = { currentFolder = folder })
+    }, onClick = {
+        viewModelApp.switchFolder(folder)
+    })
 }
