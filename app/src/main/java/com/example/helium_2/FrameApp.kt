@@ -16,6 +16,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Folder
@@ -24,6 +26,8 @@ import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Folder
 import androidx.compose.material.icons.outlined.HideImage
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
@@ -37,6 +41,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.NavigationDrawerItem
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -59,7 +64,7 @@ import androidx.core.text.isDigitsOnly
 import kotlinx.coroutines.launch
 
 
-const val VERSION = "18 окт 2025"
+const val VERSION = "19 окт 2025"
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -77,10 +82,8 @@ fun FrameApp() {
         leftPanelVisible = leftPanelState.isOpen
     }
 
-
     ModalNavigationDrawer(
-        drawerContent = { FrameFolders() },
-        drawerState = leftPanelState
+        drawerContent = { FrameFolders() }, drawerState = leftPanelState
     ) {
         Scaffold(topBar = { FrameAppTopBar() }) { innerPadding ->
             FrameMedia(modifier = Modifier.padding(innerPadding))
@@ -114,10 +117,9 @@ fun FrameAppHeaderNavigationIcon() {
 @Composable
 fun FrameAppHeaderActions() {
     val appHeader by viewModelApp.appHeader
+    var menuFolderVisible by viewModelApp.menuFolderVisible
 
     if (appHeader == "Helium-2") return
-
-    var menuFolderVisible by viewModelApp.menuFolderVisible
 
     IconButton(onClick = { menuFolderVisible = true }) {
         Icon(Icons.Default.MoreVert, "Меню")
@@ -126,24 +128,47 @@ fun FrameAppHeaderActions() {
     MenuFolder()
 }
 
+
 @Composable
 fun MenuFolder() {
+    val appHeader by viewModelApp.appHeader
+    val context = LocalContext.current
+    var dialogForgetFolderVisible by viewModelApp.dialogForgetFolderVisible
     var menuFolderVisible by viewModelApp.menuFolderVisible
 
+    if (dialogForgetFolderVisible) {
+        AlertDialog(
+            onDismissRequest = { dialogForgetFolderVisible = false },
+            title = { Text("Забыть каталог?") },
+            text = { Text("Забыть каталог $appHeader?") },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        dialogForgetFolderVisible = false
+                        viewModelApp.forgetFolder(context)
+                    }) {
+                    Text("Забыть")
+                }
+            },
+            dismissButton = {
+                OutlinedButton(
+                    onClick = { dialogForgetFolderVisible = false }) {
+                    Text("Оставить")
+                }
+            })
+    }
+
+
     DropdownMenu(
-        expanded = menuFolderVisible,
-        onDismissRequest = { menuFolderVisible = false }
-    ) {
-        DropdownMenuItem(
-            onClick = { menuFolderVisible = false },
-            text = { Text("Забыть каталог") },
-            leadingIcon = {
-                Icon(
-                    imageVector = Icons.Outlined.HideImage,
-                    contentDescription = null
-                )
-            }
-        )
+        expanded = menuFolderVisible, onDismissRequest = { menuFolderVisible = false }) {
+        DropdownMenuItem(onClick = {
+            menuFolderVisible = false
+            dialogForgetFolderVisible = true
+        }, text = { Text("Забыть каталог") }, leadingIcon = {
+            Icon(
+                imageVector = Icons.Outlined.HideImage, contentDescription = null
+            )
+        })
     }
 }
 
@@ -157,7 +182,11 @@ fun FrameFolders() {
     ) {
         FoldersHeader()
 
-        Column(modifier = Modifier.padding(horizontal = 16.dp)) {
+        Column(
+            modifier = Modifier
+                .padding(horizontal = 16.dp)
+                .verticalScroll(rememberScrollState())
+        ) {
             foldersCounters.toSortedMap().forEach { (folder, count) -> ButtonFolder(folder, count) }
 
             ButtonAddFolder()
@@ -175,9 +204,7 @@ fun FoldersHeader() {
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(
-                text = "Helium-2",
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Bold
+                text = "Helium-2", fontSize = 18.sp, fontWeight = FontWeight.Bold
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
@@ -208,7 +235,7 @@ fun ButtonAddFolder() {
 
                 coroutineScope.launch {
                     viewModelApp.appendFolderPath(it)
-                    viewModelApp.saveFoldersPaths(context)
+                    viewModelApp.saveFolderPaths(context)
                     viewModelApp.updateCounts(context)
                 }
 

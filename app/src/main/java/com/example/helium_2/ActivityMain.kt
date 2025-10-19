@@ -32,7 +32,7 @@ class ActivityMain : ComponentActivity() {
         enableEdgeToEdge()
 
         lifecycleScope.launch {
-            viewModelApp.loadFoldersPaths(this@ActivityMain)
+            viewModelApp.loadFolderPaths(this@ActivityMain)
             viewModelApp.updateCounts(this@ActivityMain)
         }
 

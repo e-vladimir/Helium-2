@@ -15,9 +15,11 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.launch
 
 import kotlin.collections.forEach
 
@@ -32,22 +34,25 @@ class ViewModelApp : ViewModel() {
     var folderProcessors = mutableMapOf<String, FolderProcessor>()
     var leftPanelVisible = mutableStateOf(false)
     var menuFolderVisible = mutableStateOf(false)
+    var dialogForgetFolderVisible = mutableStateOf(false)
+    var debugData = mutableStateOf("")
 
     fun appendFolderPath(folderPath: Uri) {
         if (folderPath in folderPaths) return
+        if (uriToString(folderPath).isEmpty()) return
 
         folderPaths.add(folderPath)
 
         applyFolderPath(folderPath)
     }
 
-    suspend fun saveFoldersPaths(context: Context) {
+    suspend fun saveFolderPaths(context: Context) {
         context.dataStore.edit { preferences ->
             preferences[KEY_FOLDERS] = folderPaths.joinToString("\n") { it.toString() }
         }
     }
 
-    suspend fun loadFoldersPaths(context: Context) {
+    suspend fun loadFolderPaths(context: Context) {
         val data =
             context.dataStore.data.map { preferences -> preferences[KEY_FOLDERS] ?: "" }.first()
                 .split("\n").filter { it.isNotEmpty() }.map { it.toUri() }
@@ -57,9 +62,9 @@ class ViewModelApp : ViewModel() {
     }
 
     fun applyFolderPath(folderPath: Uri) {
-        val folderName =
-            folderPath.toString().replace("%20", " ").replace("%3A", ":").replace("%2F", "/")
-                .split(":").last().split("/").last()
+        var folderName = uriToString(folderPath)
+
+        if (folderName.isEmpty()) folderName = "Память телефона"
 
         folderCounters[folderName] = "waiting"
         folderProcessors[folderName] = FolderProcessor(folderPath)
@@ -79,5 +84,31 @@ class ViewModelApp : ViewModel() {
 
         leftPanelVisible.value = false
         appHeader.value = folderName
+    }
+
+    fun forgetFolder(context: Context) {
+        debugData.value = ""
+
+        folderPaths = folderPaths
+            .filterNot { folderPath -> uriToString(folderPath) == appHeader.value }
+            .toMutableList()
+
+        folderPaths.forEach { folderPath ->
+            val folderName = uriToString(folderPath)
+
+            debugData.value += "$folderName ::\n"
+            debugData.value += folderPath.toString()
+            debugData.value += "\n\n"
+
+        }
+
+        viewModelScope.launch {
+            saveFolderPaths(context)
+
+            folderCounters.remove(appHeader.value)
+            folderProcessors.remove(appHeader.value)
+
+            appHeader.value = "Helium-2"
+        }
     }
 }

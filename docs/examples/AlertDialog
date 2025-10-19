@@ -1,0 +1,52 @@
+@Composable
+fun DialogExample() {
+    var showDialog by remember { mutableStateOf(false) }
+
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Button(
+            onClick = { showDialog = true }
+        ) {
+            Text("Показать диалог")
+        }
+    }
+
+    if (showDialog) {
+        AlertDialog(
+            onDismissRequest = {
+                // Вызывается при нажатии вне диалога или кнопки Назад
+                showDialog = false
+            },
+            title = {
+                Text("Подтверждение")
+            },
+            text = {
+                Text("Вы уверены, что хотите выполнить это действие?")
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        // Действие при нажатии "Да"
+                        showDialog = false
+                        // Ваш код здесь
+                    }
+                ) {
+                    Text("Да")
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = {
+                        // Действие при нажатии "Нет"
+                        showDialog = false
+                    }
+                ) {
+                    Text("Нет")
+                }
+            }
+        )
+    }
+}
