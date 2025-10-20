@@ -118,8 +118,15 @@ fun FrameAppHeaderNavigationIcon() {
 fun FrameAppHeaderActions() {
     val appHeader by viewModelApp.appHeader
     var menuFolderVisible by viewModelApp.menuFolderVisible
+    val mediaState by viewModelApp.mediaState
 
     if (appHeader == "Helium-2") return
+
+    if (mediaState == STATES.PROCESSING) {
+        CircularProgressIndicator(
+            modifier = Modifier.size(24.dp), strokeWidth = 3.dp
+        )
+    }
 
     IconButton(onClick = { menuFolderVisible = true }) {
         Icon(Icons.Default.MoreVert, "Меню")
