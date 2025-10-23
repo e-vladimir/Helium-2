@@ -64,7 +64,7 @@ import androidx.core.text.isDigitsOnly
 import kotlinx.coroutines.launch
 
 
-const val VERSION = "19 окт 2025"
+const val VERSION = "23 окт 2025"
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -95,10 +95,10 @@ fun FrameApp() {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FrameAppTopBar() {
-    val appHeader by viewModelApp.appHeader
+    val folderSelected by viewModelApp.folderCurrent
 
     TopAppBar(
-        title = { Text(appHeader) },
+        title = { Text(folderSelected.ifEmpty { "Helium-2" }) },
         navigationIcon = { FrameAppHeaderNavigationIcon() },
         actions = { FrameAppHeaderActions() })
 }
@@ -116,11 +116,11 @@ fun FrameAppHeaderNavigationIcon() {
 
 @Composable
 fun FrameAppHeaderActions() {
-    val appHeader by viewModelApp.appHeader
+    val folderSelected by viewModelApp.folderCurrent
     var menuFolderVisible by viewModelApp.menuFolderVisible
     val mediaState by viewModelApp.mediaState
 
-    if (appHeader == "Helium-2") return
+    if (folderSelected.isEmpty()) return
 
     if (mediaState == STATES.PROCESSING) {
         CircularProgressIndicator(
@@ -138,7 +138,7 @@ fun FrameAppHeaderActions() {
 
 @Composable
 fun MenuFolder() {
-    val appHeader by viewModelApp.appHeader
+    val folderSelected by viewModelApp.folderCurrent
     val context = LocalContext.current
     var dialogForgetFolderVisible by viewModelApp.dialogForgetFolderVisible
     var menuFolderVisible by viewModelApp.menuFolderVisible
@@ -147,12 +147,12 @@ fun MenuFolder() {
         AlertDialog(
             onDismissRequest = { dialogForgetFolderVisible = false },
             title = { Text("Забыть каталог?") },
-            text = { Text("Забыть каталог $appHeader?") },
+            text = { Text("Забыть каталог $folderSelected?") },
             confirmButton = {
                 Button(
                     onClick = {
                         dialogForgetFolderVisible = false
-                        viewModelApp.forgetFolder(context)
+                        viewModelApp.forgetFolderCurrent(context)
                     }) {
                     Text("Забыть")
                 }
@@ -241,9 +241,9 @@ fun ButtonAddFolder() {
                 )
 
                 coroutineScope.launch {
-                    viewModelApp.appendFolderPath(it)
+                    viewModelApp.addFolderPath(it)
                     viewModelApp.saveFolderPaths(context)
-                    viewModelApp.updateCounts(context)
+                    viewModelApp.readFolderCounters(context)
                 }
 
             } catch (e: Exception) {
@@ -268,7 +268,7 @@ fun ButtonAddFolder() {
 
 @Composable
 fun ButtonFolder(folder: String, count: String) {
-    var currentFolder by viewModelApp.appHeader
+    var currentFolder by viewModelApp.folderCurrent
     val selected = currentFolder == folder
 
     NavigationDrawerItem(label = { Text(folder) }, selected = selected, icon = {
@@ -287,6 +287,6 @@ fun ButtonFolder(folder: String, count: String) {
             )
         }
     }, onClick = {
-        viewModelApp.switchFolder(folder)
+        viewModelApp.switchFolderCurrentByName(folder)
     })
 }

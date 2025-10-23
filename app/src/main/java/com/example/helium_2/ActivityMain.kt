@@ -33,7 +33,7 @@ class ActivityMain : ComponentActivity() {
 
         lifecycleScope.launch {
             viewModelApp.loadFolderPaths(this@ActivityMain)
-            viewModelApp.updateCounts(this@ActivityMain)
+            viewModelApp.readFolderCounters(this@ActivityMain)
         }
 
         setContent {
