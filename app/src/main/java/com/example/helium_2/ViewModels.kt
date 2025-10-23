@@ -49,6 +49,7 @@ class ViewModelApp : ViewModel() {
 
     var menuFolderVisible = mutableStateOf(false)
 
+    var dataDebug = mutableStateOf("")
 
     suspend fun saveFolderPaths(context: Context) {
         context.dataStore.edit { preferences ->
@@ -104,6 +105,8 @@ class ViewModelApp : ViewModel() {
 
         folderCurrent.value = folderName
         folderProcessor.value = folderProcessors[folderName]
+
+        dataDebug.value = folderProcessor.value?.dataDebug ?: ""
 
     }
 
