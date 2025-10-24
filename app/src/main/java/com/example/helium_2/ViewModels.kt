@@ -5,6 +5,7 @@ package com.example.helium_2
 import android.content.Context
 
 import android.net.Uri
+import androidx.compose.runtime.mutableStateListOf
 
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
@@ -16,12 +17,14 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.Dispatchers
 
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+
+import java.time.LocalDate
 
 import kotlin.collections.forEach
 
@@ -46,10 +49,12 @@ class ViewModelApp : ViewModel() {
     var leftPanelVisible = mutableStateOf(false)
 
     var mediaState = mutableStateOf(STATES.WAITING)
+    var mediaDates = mutableStateListOf<LocalDate>()
 
     var menuFolderVisible = mutableStateOf(false)
 
     var dataDebug = mutableStateOf("")
+
 
     suspend fun saveFolderPaths(context: Context) {
         context.dataStore.edit { preferences ->
@@ -89,27 +94,6 @@ class ViewModelApp : ViewModel() {
         folderProcessors[folderName] = FolderProcessor(folderPath)
     }
 
-    suspend fun readFolderCounters(context: Context) {
-        withContext(Dispatchers.IO) {
-            folderCounters.forEach { (folderName, _) ->
-                folderProcessors[folderName]?.readFiles(context)
-                folderCounters[folderName] = folderProcessors[folderName]?.countFiles().toString()
-            }
-        }
-    }
-
-    fun switchFolderCurrentByName(folderName: String) {
-        if (folderName == folderCurrent.value) return
-
-        leftPanelVisible.value = false
-
-        folderCurrent.value = folderName
-        folderProcessor.value = folderProcessors[folderName]
-
-        dataDebug.value = folderProcessor.value?.dataDebug ?: ""
-
-    }
-
     fun forgetFolderCurrent(context: Context) {
         folderPaths =
             folderPaths.filterNot { folderPath -> uriToString(folderPath) == folderCurrent.value }
@@ -123,5 +107,37 @@ class ViewModelApp : ViewModel() {
 
             folderCurrent.value = ""
         }
+    }
+
+    suspend fun readFolderCounters(context: Context) {
+        withContext(Dispatchers.IO) {
+            folderCounters.forEach { (folderName, _) ->
+                folderProcessors[folderName]?.readFiles(context)
+                folderCounters[folderName] = folderProcessors[folderName]?.countFiles().toString()
+            }
+        }
+    }
+
+    suspend fun switchFolderCurrentByName(folderName: String) {
+        if (folderName == folderCurrent.value) return
+
+        leftPanelVisible.value = false
+
+        folderCurrent.value = folderName
+        folderProcessor.value = folderProcessors[folderName]
+
+        mediaState.value = STATES.PROCESSING
+
+        try {
+
+            withContext(Dispatchers.IO) {
+                mediaDates.clear()
+                mediaDates.addAll(folderProcessor.value?.readDates()!!)
+            }
+
+        }
+        catch (_: Exception){}
+
+        mediaState.value = STATES.WAITING
     }
 }

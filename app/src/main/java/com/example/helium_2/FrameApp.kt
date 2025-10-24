@@ -7,6 +7,7 @@ import android.net.Uri
 import android.widget.Toast
 
 import androidx.activity.compose.rememberLauncherForActivityResult
+
 import androidx.activity.result.contract.ActivityResultContracts
 
 import androidx.compose.foundation.layout.Column
@@ -269,6 +270,7 @@ fun ButtonAddFolder() {
 @Composable
 fun ButtonFolder(folder: String, count: String) {
     var currentFolder by viewModelApp.folderCurrent
+    val coroutineScope = rememberCoroutineScope()
     val selected = currentFolder == folder
 
     NavigationDrawerItem(label = { Text(folder) }, selected = selected, icon = {
@@ -287,6 +289,8 @@ fun ButtonFolder(folder: String, count: String) {
             )
         }
     }, onClick = {
-        viewModelApp.switchFolderCurrentByName(folder)
+        coroutineScope.launch {
+            viewModelApp.switchFolderCurrentByName(folder)
+        }
     })
 }

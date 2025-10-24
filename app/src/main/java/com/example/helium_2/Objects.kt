@@ -8,6 +8,8 @@ import android.net.Uri
 
 import androidx.documentfile.provider.DocumentFile
 
+import java.time.LocalDate
+
 
 class FolderProcessor(val folderPath: Uri) {
     var files = listOf<DocumentFile>()
@@ -18,14 +20,26 @@ class FolderProcessor(val folderPath: Uri) {
 
         try {
             files = DocumentFile
-                    .fromTreeUri(context, folderPath)
-                    ?.listFiles()!!.filter { documentFile -> whiteMime.any{mime -> documentFile.type?.startsWith(mime) == true } } .toList()
-
-            dataDebug = files.withIndex().joinToString("\n"){(idx, text) -> "[$idx] ${text.name}"}
-        } catch (e: Exception) {
-            dataDebug = e.toString()
+                .fromTreeUri(context, folderPath)
+                ?.listFiles()!!
+                .filter { documentFile -> whiteMime.any { mime -> documentFile.type?.startsWith(mime) == true } }
+                .toList()
+        } catch (_: Exception) {
         }
     }
 
     fun countFiles(): Int = files.count()
+
+    fun readDates(): List<LocalDate> {
+        return files
+            .map { file ->
+                file
+                    .lastModified()
+                    .toLocalDateTime()
+                    .toLocalDate()
+            }
+            .toSet()
+            .toList()
+            .sorted()
+    }
 }
