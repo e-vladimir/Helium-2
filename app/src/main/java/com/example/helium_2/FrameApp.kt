@@ -65,7 +65,7 @@ import androidx.core.text.isDigitsOnly
 import kotlinx.coroutines.launch
 
 
-const val VERSION = "23 окт 2025"
+const val VERSION = "25 окт 2025"
 
 
 @OptIn(ExperimentalMaterial3Api::class)

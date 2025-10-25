@@ -5,8 +5,8 @@ package com.example.helium_2
 import android.content.Context
 
 import android.net.Uri
-import androidx.compose.runtime.mutableStateListOf
 
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 
@@ -14,6 +14,8 @@ import androidx.core.net.toUri
 
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
+
+import androidx.documentfile.provider.DocumentFile
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -23,8 +25,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-
-import java.time.LocalDate
 
 import kotlin.collections.forEach
 
@@ -49,11 +49,9 @@ class ViewModelApp : ViewModel() {
     var leftPanelVisible = mutableStateOf(false)
 
     var mediaState = mutableStateOf(STATES.WAITING)
-    var mediaDates = mutableStateListOf<LocalDate>()
+    var mediaFiles = mutableStateListOf<DocumentFile>()
 
     var menuFolderVisible = mutableStateOf(false)
-
-    var dataDebug = mutableStateOf("")
 
 
     suspend fun saveFolderPaths(context: Context) {
@@ -127,17 +125,8 @@ class ViewModelApp : ViewModel() {
         folderProcessor.value = folderProcessors[folderName]
 
         mediaState.value = STATES.PROCESSING
-
-        try {
-
-            withContext(Dispatchers.IO) {
-                mediaDates.clear()
-                mediaDates.addAll(folderProcessor.value?.readDates()!!)
-            }
-
-        }
-        catch (_: Exception){}
-
+        mediaFiles.clear()
+        mediaFiles.addAll(folderProcessor.value?.files!!.reversed())
         mediaState.value = STATES.WAITING
     }
 }

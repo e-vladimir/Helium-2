@@ -2,27 +2,32 @@
 
 package com.example.helium_2
 
-import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 
 import androidx.compose.material3.Text
 
 import androidx.compose.runtime.Composable
 
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
+
+import androidx.documentfile.provider.DocumentFile
+
+import coil.compose.AsyncImage
 
 import java.time.LocalDate
 
 
 @Composable
 fun FrameMedia(modifier: Modifier = Modifier) {
-    val mediaDates = viewModelApp.mediaDates
+    val mediaFiles = viewModelApp.mediaFiles
 
     LazyVerticalGrid(
         modifier = modifier
@@ -30,16 +35,9 @@ fun FrameMedia(modifier: Modifier = Modifier) {
             .padding(8.dp),
         columns = GridCells.Fixed(4)
     ) {
-        mediaDates.forEach { mediaDate ->
-            item(
-                key = mediaDate.toFormattedString(),
-                span = { GridItemSpan(4) }
-            )
-            {
-                MediaGroup(mediaDate)
-                Spacer(modifier = Modifier.height(8.dp))
-            }
-        }
+        items(
+            items = mediaFiles,
+            key = { mediaFile -> mediaFile.toString() }) { mediaItem -> MediaItem(mediaItem) }
     }
 }
 
@@ -47,12 +45,20 @@ fun FrameMedia(modifier: Modifier = Modifier) {
 @Composable
 fun MediaGroup(mediaDate: LocalDate) {
     Text(
-        modifier = Modifier.padding(8.dp),
-        text = mediaDate.toFormattedString()
+        modifier = Modifier.padding(8.dp), text = mediaDate.toFormattedString()
     )
 }
 
 
 @Composable
-fun MediaItem() {
+fun MediaItem(mediaItem: DocumentFile) {
+    AsyncImage(
+        model = mediaItem.uri,
+        contentDescription = null,
+        contentScale = ContentScale.Crop,
+        modifier = Modifier
+            .aspectRatio(1f)
+            .fillMaxSize()
+            .padding(1.dp)
+    )
 }

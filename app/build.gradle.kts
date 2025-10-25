@@ -59,7 +59,7 @@ dependencies {
     implementation(libs.androidx.datastore.core)
     implementation(libs.androidx.datastore.preferences)
     implementation(libs.androidx.documentfile)
-    implementation("com.google.errorprone:error_prone_annotations:2.23.0")
+    implementation("com.google.errorprone:error_prone_annotations:2.43.0")
     implementation(libs.material3)
     implementation(libs.androidx.compose.foundation.layout)
     testImplementation(libs.junit)
@@ -69,4 +69,5 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+    implementation(libs.coil.compose)
 }
