@@ -6,7 +6,6 @@ import android.content.Context
 
 import android.net.Uri
 
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 
@@ -25,6 +24,9 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+
+import java.time.LocalDate
+import java.time.LocalDateTime
 
 import kotlin.collections.forEach
 
@@ -49,7 +51,8 @@ class ViewModelApp : ViewModel() {
     var leftPanelVisible = mutableStateOf(false)
 
     var mediaState = mutableStateOf(STATES.WAITING)
-    var mediaFiles = mutableStateListOf<DocumentFile>()
+    var mediaFiles = mutableStateMapOf<LocalDateTime, DocumentFile>()
+    var mediaGroups = mutableStateMapOf<LocalDate, Map<LocalDateTime, DocumentFile>>()
 
     var menuFolderVisible = mutableStateOf(false)
 
@@ -126,7 +129,20 @@ class ViewModelApp : ViewModel() {
 
         mediaState.value = STATES.PROCESSING
         mediaFiles.clear()
-        mediaFiles.addAll(folderProcessor.value?.files!!.reversed())
+
+        withContext(Dispatchers.IO) {
+            mediaFiles.putAll(folderProcessor.value?.files?.map {
+                it.lastModified().toLocalDateTime() to it
+            }!!.toMap())
+        }
+
+        viewModelScope.launch {
+            mediaGroups.clear()
+            mediaGroups.putAll(
+                mediaFiles.keys.map { it.toLocalDate() }
+                    .map { mediaGroup -> mediaGroup to mediaFiles.filter { it.key.toLocalDate() == mediaGroup } })
+        }
+
         mediaState.value = STATES.WAITING
     }
 }
