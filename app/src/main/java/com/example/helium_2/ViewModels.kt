@@ -20,6 +20,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
@@ -28,14 +30,15 @@ import kotlinx.coroutines.withContext
 import java.time.LocalDate
 import java.time.LocalDateTime
 
-import kotlin.collections.forEach
+import kotlin.collections.set
 
 
 val KEY_FOLDERS = stringPreferencesKey("folders")
 
 
 enum class STATES {
-    PROCESSING, WAITING
+    PROCESSING,
+    WAITING
 }
 
 
@@ -110,16 +113,30 @@ class ViewModelApp : ViewModel() {
         }
     }
 
+    suspend fun updateCountFolderCurrent(context: Context) {
+        if (folderCurrent.value.isEmpty()) return
+        mediaState.value = STATES.PROCESSING
+
+        withContext(Dispatchers.IO) {
+            folderCounters[folderCurrent.value] = (folderProcessors[folderCurrent.value]?.readFiles(context) ?: 0).toString()
+            updateMediaGroups()
+        }
+
+        mediaState.value = STATES.WAITING
+    }
+
     suspend fun readFolderCounters(context: Context) {
         withContext(Dispatchers.IO) {
-            folderCounters.forEach { (folderName, _) ->
-                folderProcessors[folderName]?.readFiles(context)
-                folderCounters[folderName] = folderProcessors[folderName]?.countFiles().toString()
-            }
+            folderCounters.keys.map { folderName ->
+                async {
+                    folderCounters[folderName] =
+                        (folderProcessors[folderName]?.readFiles(context) ?: 0).toString()
+                }
+            }.awaitAll()
         }
     }
 
-    suspend fun switchFolderCurrentByName(folderName: String) {
+    suspend fun switchFolderCurrentByName(folderName: String, context: Context) {
         if (folderName == folderCurrent.value) return
 
         leftPanelVisible.value = false
@@ -130,6 +147,10 @@ class ViewModelApp : ViewModel() {
         mediaState.value = STATES.PROCESSING
         mediaFiles.clear()
 
+        updateMediaGroups()
+    }
+
+    suspend fun updateMediaGroups() {
         withContext(Dispatchers.IO) {
             mediaFiles.putAll(folderProcessor.value?.files?.map {
                 it.lastModified().toLocalDateTime() to it

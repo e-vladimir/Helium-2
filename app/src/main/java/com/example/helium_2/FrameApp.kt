@@ -7,17 +7,21 @@ import android.net.Uri
 import android.widget.Toast
 
 import androidx.activity.compose.rememberLauncherForActivityResult
-
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 
 import androidx.compose.material.icons.Icons
@@ -27,9 +31,9 @@ import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Folder
 import androidx.compose.material.icons.outlined.HideImage
+
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
-
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DrawerValue
@@ -46,14 +50,21 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
+import androidx.compose.material3.pulltorefresh.PullToRefreshState
+import androidx.compose.material3.pulltorefresh.pullToRefresh
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.material3.rememberDrawerState
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -65,14 +76,25 @@ import androidx.core.text.isDigitsOnly
 import kotlinx.coroutines.launch
 
 
-const val VERSION = "26 окт 2025"
+const val VERSION = "29 окт 2025"
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FrameApp() {
+    val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
     val leftPanelState = rememberDrawerState(initialValue = DrawerValue.Closed)
+    val stateRefresh = rememberPullToRefreshState()
+    var isRefreshing by remember { mutableStateOf(false) }
     var leftPanelVisible by viewModelApp.leftPanelVisible
+    val onRefresh: () -> Unit = {
+        isRefreshing = true
+        coroutineScope.launch {
+            viewModelApp.updateCountFolderCurrent(context)
+        }
+        isRefreshing = false
+    }
 
     LaunchedEffect(leftPanelVisible) {
         if (leftPanelState.isClosed and leftPanelVisible) leftPanelState.open()
@@ -86,8 +108,79 @@ fun FrameApp() {
     ModalNavigationDrawer(
         drawerContent = { FrameFolders() }, drawerState = leftPanelState
     ) {
-        Scaffold(topBar = { FrameAppTopBar() }) { innerPadding ->
-            FrameMedia(modifier = Modifier.padding(innerPadding))
+        Scaffold(
+            modifier =
+                Modifier.pullToRefresh(
+                    state = stateRefresh,
+                    isRefreshing = isRefreshing,
+                    onRefresh = onRefresh,
+                ),
+            topBar = { FrameAppTopBar() }) { innerPadding ->
+
+            Box(
+                modifier = Modifier
+                    .padding(innerPadding)
+                    .fillMaxSize()
+            ) {
+                FrameMedia()
+                FrameAppIndicatorPullToRefresh(
+                    Modifier.align(Alignment.TopCenter),
+                    stateRefresh,
+                    isRefreshing
+                )
+                FrameAppIndicatorRefresh(Modifier.align(Alignment.Center))
+
+            }
+        }
+    }
+}
+
+
+@Composable
+fun FrameAppIndicatorPullToRefresh(
+    modifier: Modifier = Modifier,
+    state: PullToRefreshState,
+    flag: Boolean
+) {
+    PullToRefreshDefaults.Indicator(
+        modifier = modifier,
+        state = state,
+        isRefreshing = flag
+    )
+}
+
+
+@Composable
+fun FrameAppIndicatorRefresh(modifier: Modifier = Modifier) {
+    val mediaState by viewModelApp.mediaState
+
+    if (mediaState == STATES.PROCESSING) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background.copy(alpha = 0.75f))
+        )
+
+        Box(
+            modifier = modifier
+                .size(48.dp)
+                .background(
+                    color = MaterialTheme.colorScheme.surfaceContainerLow,
+                    shape = CircleShape
+                )
+                .border(
+                    width = 1.dp,
+                    color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                    shape = CircleShape
+                ),
+            contentAlignment = Alignment.Center
+
+        ) {
+            CircularProgressIndicator(
+                modifier = Modifier
+                    .size(24.dp),
+                strokeWidth = 2.dp
+            )
         }
     }
 }
@@ -119,15 +212,8 @@ fun FrameAppHeaderNavigationIcon() {
 fun FrameAppHeaderActions() {
     val folderSelected by viewModelApp.folderCurrent
     var menuFolderVisible by viewModelApp.menuFolderVisible
-    val mediaState by viewModelApp.mediaState
 
     if (folderSelected.isEmpty()) return
-
-    if (mediaState == STATES.PROCESSING) {
-        CircularProgressIndicator(
-            modifier = Modifier.size(24.dp), strokeWidth = 3.dp
-        )
-    }
 
     IconButton(onClick = { menuFolderVisible = true }) {
         Icon(Icons.Default.MoreVert, "Меню")
@@ -269,6 +355,7 @@ fun ButtonAddFolder() {
 
 @Composable
 fun ButtonFolder(folder: String, count: String) {
+    val context = LocalContext.current
     var currentFolder by viewModelApp.folderCurrent
     val coroutineScope = rememberCoroutineScope()
     val selected = currentFolder == folder
@@ -290,7 +377,7 @@ fun ButtonFolder(folder: String, count: String) {
         }
     }, onClick = {
         coroutineScope.launch {
-            viewModelApp.switchFolderCurrentByName(folder)
+            viewModelApp.switchFolderCurrentByName(folder, context)
         }
     })
 }
