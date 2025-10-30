@@ -56,6 +56,7 @@ class ViewModelApp : ViewModel() {
     var mediaState = mutableStateOf(STATES.WAITING)
     var mediaFiles = mutableStateMapOf<LocalDateTime, DocumentFile>()
     var mediaGroups = mutableStateMapOf<LocalDate, Map<LocalDateTime, DocumentFile>>()
+    var mediaFile = mutableStateOf<DocumentFile?>(null)
 
     var menuFolderVisible = mutableStateOf(false)
 

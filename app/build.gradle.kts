@@ -62,6 +62,8 @@ dependencies {
     implementation("com.google.errorprone:error_prone_annotations:2.43.0")
     implementation(libs.material3)
     implementation(libs.androidx.compose.foundation.layout)
+    implementation(libs.androidx.navigation.compose)
+    implementation(libs.androidx.navigation.runtime.ktx)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

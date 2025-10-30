@@ -8,9 +8,9 @@ import android.widget.Toast
 
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -72,16 +72,17 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 import androidx.core.text.isDigitsOnly
+import androidx.navigation.NavController
 
 import kotlinx.coroutines.launch
 
 
-const val VERSION = "29 окт 2025"
+const val VERSION = "30 окт 2025"
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun FrameApp() {
+fun FrameApp(navController: NavController) {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
     val leftPanelState = rememberDrawerState(initialValue = DrawerValue.Closed)
@@ -122,7 +123,7 @@ fun FrameApp() {
                     .padding(innerPadding)
                     .fillMaxSize()
             ) {
-                FrameMedia()
+                FrameMedia(navController = navController)
                 FrameAppIndicatorPullToRefresh(
                     Modifier.align(Alignment.TopCenter),
                     stateRefresh,

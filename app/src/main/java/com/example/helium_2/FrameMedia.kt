@@ -3,6 +3,7 @@
 package com.example.helium_2
 
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
@@ -24,14 +25,16 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 
 import androidx.documentfile.provider.DocumentFile
+import androidx.navigation.NavController
 
 import coil.compose.AsyncImage
 
 import java.time.LocalDate
+import java.util.Comparator
 
 
 @Composable
-fun FrameMedia(modifier: Modifier = Modifier) {
+fun FrameMedia(modifier: Modifier = Modifier, navController: NavController) {
     val mediaGroups = viewModelApp.mediaGroups
 
     LazyVerticalGrid(
@@ -44,11 +47,15 @@ fun FrameMedia(modifier: Modifier = Modifier) {
                 MediaGroup(mediaGroup)
             }
 
-            mediaGroups[mediaGroup]?.toSortedMap()?.forEach { (mediaDateTime, mediaItem) ->
-                item(key = mediaDateTime) {
-                    MediaItem(mediaItem)
+            mediaGroups[mediaGroup]?.toSortedMap(Comparator.reverseOrder())
+                ?.forEach { (mediaDateTime, mediaItem) ->
+                    item(key = mediaDateTime) {
+                        MediaItem(
+                            mediaItem = mediaItem,
+                            navController = navController
+                        )
+                    }
                 }
-            }
 
             item(key = mediaGroup.toFormattedString(), span = { GridItemSpan(4) }) {
                 Spacer(modifier = Modifier.height(12.dp))
@@ -61,14 +68,13 @@ fun FrameMedia(modifier: Modifier = Modifier) {
 @Composable
 fun MediaGroup(mediaDate: LocalDate) {
     Text(
-        modifier = Modifier.padding(vertical = 4.dp),
-        text = mediaDate.toFormattedString()
+        modifier = Modifier.padding(vertical = 4.dp), text = mediaDate.toFormattedString()
     )
 }
 
 
 @Composable
-fun MediaItem(mediaItem: DocumentFile) {
+fun MediaItem(mediaItem: DocumentFile, navController: NavController) {
     AsyncImage(
         model = mediaItem.uri,
         contentDescription = null,
@@ -78,5 +84,9 @@ fun MediaItem(mediaItem: DocumentFile) {
             .fillMaxSize()
             .padding(1.dp)
             .border(1.dp, MaterialTheme.colorScheme.surfaceContainerLow)
+            .clickable {
+                viewModelApp.mediaFile.value = mediaItem
+                navController.navigate(SCREENS.MEDIA.screen)
+            }
     )
 }
