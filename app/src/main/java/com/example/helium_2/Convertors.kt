@@ -20,8 +20,8 @@ fun uriToString(folderPath: Uri): String =
         .last().split("/").last().trim()
 
 
-fun LocalDateTime.toFormattedString(): String {
-    val formatter = DateTimeFormatter.ofPattern("dd MMMM yyyy", Locale.getDefault())
+fun LocalDateTime.toFormattedString(includeTime: Boolean = false): String {
+    val formatter = DateTimeFormatter.ofPattern(if (includeTime) "dd MMMM yyyy HH:mm" else "dd MMMM yyyy", Locale.getDefault())
     return this.format(formatter).toString()
 }
 
