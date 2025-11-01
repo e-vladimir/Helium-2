@@ -59,7 +59,7 @@ fun App() {
         }
 
         composable(SCREENS.MEDIA.screen) {
-            FrameViewer(navController = navController)
+            FrameViewer()
         }
     }
 
