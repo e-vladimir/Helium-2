@@ -44,7 +44,7 @@ class ActivityMain : ComponentActivity() {
         }
 
         setContent {
-            Helium2Theme { App() }
+            Helium2Theme{ App() }
         }
     }
 }

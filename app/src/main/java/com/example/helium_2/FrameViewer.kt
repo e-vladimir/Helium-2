@@ -13,8 +13,8 @@ import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsPadding
 
 import androidx.compose.material3.Card
-import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 
 import androidx.compose.runtime.Composable
@@ -36,52 +36,58 @@ import coil.compose.AsyncImage
 @Preview(showSystemUi = true)
 @Composable
 fun FrameViewer() {
-    val mediaFile by viewModelApp.mediaFile
     val folderCurrent by viewModelApp.folderCurrent
+    val mediaFile by viewModelApp.mediaFile
     var showDetails by remember { mutableStateOf(false) }
 
-    Column(
+    Surface(
         modifier = Modifier
-            .windowInsetsPadding(WindowInsets.safeDrawing)
-            .padding(4.dp)
+            .fillMaxSize()
+//        color = MaterialTheme.colorScheme.background
     ) {
-        if (showDetails) {
-            Card(
-                modifier = Modifier.padding(4.dp)
-            ) {
-                Column(modifier = Modifier.padding(8.dp)) {
-                    Text(
-                        modifier = Modifier.fillMaxWidth(),
-                        text = folderCurrent,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.secondary,
-                        textAlign = TextAlign.Center
-                    )
-                    Spacer(modifier = Modifier.height(2.dp))
-                    Text(
-                        modifier = Modifier.fillMaxWidth(),
-                        text = mediaFile?.lastModified()?.toLocalDateTime()
-                            ?.toFormattedString(includeTime = true)!!,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        textAlign = TextAlign.Center
-                    )
+        Column(
+            modifier = Modifier
+                .windowInsetsPadding(WindowInsets.safeDrawing)
+                .padding(4.dp)
+        ) {
+            if (showDetails) {
+                Card(
+                    modifier = Modifier.padding(4.dp)
+                ) {
+                    Column(modifier = Modifier.padding(8.dp)) {
+                        Text(
+                            color = MaterialTheme.colorScheme.secondary,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.fillMaxWidth(),
+                            text = folderCurrent,
+                            textAlign = TextAlign.Center
+                        )
+                        Spacer(modifier = Modifier.height(2.dp))
+                        Text(
+                            modifier = Modifier.fillMaxWidth(),
+                            text = mediaFile?.lastModified()?.toLocalDateTime()
+                                ?.toFormattedString(includeTime = true)!!,
+                            color = MaterialTheme.colorScheme.onSurface,
+                            textAlign = TextAlign.Center
+                        )
+                    }
                 }
             }
-        }
 
-        ElevatedCard(
-            modifier = Modifier
-                .padding(4.dp)
-                .fillMaxSize()
-        ) {
-            AsyncImage(
+            Card(
                 modifier = Modifier
+                    .padding(4.dp)
                     .fillMaxSize()
-                    .clickable { showDetails = !showDetails },
-                model = mediaFile?.uri,
-                contentDescription = null,
-                contentScale = ContentScale.Fit,
-            )
+            ) {
+                AsyncImage(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .clickable { showDetails = !showDetails },
+                    model = mediaFile?.uri,
+                    contentDescription = null,
+                    contentScale = ContentScale.Fit,
+                )
+            }
         }
     }
 }
