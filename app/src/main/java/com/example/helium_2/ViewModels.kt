@@ -60,6 +60,8 @@ class ViewModelApp : ViewModel() {
 
     var menuFolderVisible = mutableStateOf(false)
 
+    var mediaViewDetails = mutableStateOf(false)
+
 
     suspend fun saveFolderPaths(context: Context) {
         context.dataStore.edit { preferences ->
