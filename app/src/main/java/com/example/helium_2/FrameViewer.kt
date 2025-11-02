@@ -13,6 +13,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 
 import androidx.compose.material3.Card
 import androidx.compose.material3.ElevatedCard
@@ -31,6 +33,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.documentfile.provider.DocumentFile
 
 import coil.compose.AsyncImage
 
@@ -38,22 +41,31 @@ import coil.compose.AsyncImage
 @Preview(showSystemUi = true)
 @Composable
 fun FrameViewerCard() {
+    val mediaFiles = viewModelApp.mediaFiles
+    val pagerState = rememberPagerState(pageCount = { mediaFiles.count() })
+
+    val mediaIdxs = mediaFiles.keys.toList().sortedDescending()
+
     Surface(
         modifier = Modifier
             .fillMaxSize()
     ) {
-        Column(
-            modifier = Modifier
-                .windowInsetsPadding(WindowInsets.safeDrawing)
-        ) {
-            FrameViewerCardInfo()
-            FrameViewerCardMedia()
+        HorizontalPager(state = pagerState) { page ->
+            val mediaFile = mediaFiles[mediaIdxs[page]]
+
+            Column(
+                modifier = Modifier
+                    .windowInsetsPadding(WindowInsets.safeDrawing)
+            ) {
+                FrameViewerCardInfo(mediaFile = mediaFile!!)
+                FrameViewerCardMedia(mediaFile = mediaFile!!)
+            }
         }
     }
 }
 
 @Composable
-fun FrameViewerCardMedia() {
+fun FrameViewerCardMedia(mediaFile: DocumentFile) {
     var showDetails by viewModelApp.mediaViewDetails
 
     if (showDetails) {
@@ -62,7 +74,7 @@ fun FrameViewerCardMedia() {
                 .padding(top = 4.dp, start = 16.dp, end = 16.dp, bottom = 16.dp)
                 .fillMaxSize()
         ) {
-            FrameViewerCardMediaImage()
+            FrameViewerCardMediaImage(mediaFile = mediaFile)
         }
     } else {
         Box(
@@ -70,14 +82,13 @@ fun FrameViewerCardMedia() {
                 .fillMaxSize()
                 .background(color = Color.Black)
         ) {
-            FrameViewerCardMediaImage()
+            FrameViewerCardMediaImage(mediaFile = mediaFile)
         }
     }
 }
 
 @Composable
-fun FrameViewerCardMediaImage() {
-    val mediaFile by viewModelApp.mediaFile
+fun FrameViewerCardMediaImage(mediaFile: DocumentFile) {
     var showDetails by viewModelApp.mediaViewDetails
 
     AsyncImage(
@@ -85,7 +96,7 @@ fun FrameViewerCardMediaImage() {
             .fillMaxSize()
             .clickable { showDetails = !showDetails }
             .background(color = Color.Black),
-        model = mediaFile?.uri,
+        model = mediaFile.uri,
         contentDescription = null,
         contentScale = ContentScale.Fit,
     )
@@ -93,9 +104,8 @@ fun FrameViewerCardMediaImage() {
 
 
 @Composable
-fun FrameViewerCardInfo() {
+fun FrameViewerCardInfo(mediaFile: DocumentFile) {
     val folderCurrent by viewModelApp.folderCurrent
-    val mediaFile by viewModelApp.mediaFile
     var showDetails by viewModelApp.mediaViewDetails
 
     if (showDetails) {
@@ -113,8 +123,9 @@ fun FrameViewerCardInfo() {
                 Spacer(modifier = Modifier.height(2.dp))
                 Text(
                     modifier = Modifier.fillMaxWidth(),
-                    text = mediaFile?.lastModified()?.toLocalDateTime()
-                        ?.toFormattedString(includeTime = true)!!,
+                    text = mediaFile.lastModified()
+                        .toLocalDateTime()
+                        .toFormattedString(includeTime = true),
                     color = MaterialTheme.colorScheme.onSurface,
                     textAlign = TextAlign.Center
                 )
