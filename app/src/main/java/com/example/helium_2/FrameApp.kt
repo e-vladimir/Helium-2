@@ -87,7 +87,7 @@ const val VERSION = "02 ноя 2025"
 fun FrameApp(navController: NavController) {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
-    val leftPanelState = rememberDrawerState(initialValue = DrawerValue.Closed)
+    val leftPanelState = rememberDrawerState(initialValue = DrawerValue.Open)
     val stateRefresh = rememberPullToRefreshState()
     var isRefreshing by remember { mutableStateOf(false) }
     var leftPanelVisible by viewModelApp.leftPanelVisible

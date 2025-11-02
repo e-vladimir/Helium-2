@@ -42,36 +42,73 @@ import coil.compose.AsyncImage
 @Composable
 fun FrameViewerCard() {
     val mediaFiles = viewModelApp.mediaFiles
-    val pagerState = rememberPagerState(pageCount = { mediaFiles.count() })
+    val mediaKeys = mediaFiles.keys.toList().sortedDescending()
+    val mediaFile by viewModelApp.mediaFile
 
-    val mediaIdxs = mediaFiles.keys.toList().sortedDescending()
+    val pagerState = rememberPagerState(
+        initialPage = mediaKeys.indexOf(
+            mediaFile?.lastModified()?.toLocalDateTime()
+        ), pageCount = { mediaFiles.count() })
 
     Surface(
         modifier = Modifier
             .fillMaxSize()
     ) {
         HorizontalPager(state = pagerState) { page ->
-            val mediaFile = mediaFiles[mediaIdxs[page]]
+            val pageFile = mediaFiles[mediaKeys[page]]
 
             Column(
-                modifier = Modifier
-                    .windowInsetsPadding(WindowInsets.safeDrawing)
+                modifier = Modifier.windowInsetsPadding(WindowInsets.safeDrawing)
             ) {
-                FrameViewerCardInfo(mediaFile = mediaFile!!)
-                FrameViewerCardMedia(mediaFile = mediaFile!!)
+                FrameViewerCardInfo(mediaFile = pageFile)
+                FrameViewerCardMedia(mediaFile = pageFile)
             }
         }
     }
 }
 
 @Composable
-fun FrameViewerCardMedia(mediaFile: DocumentFile) {
+fun FrameViewerCardInfo(mediaFile: DocumentFile?) {
+    val folderCurrent by viewModelApp.folderCurrent
+    var showDetails by viewModelApp.mediaViewDetails
+
+    if (showDetails) {
+        Card(
+            modifier = Modifier.padding(top = 8.dp, start = 8.dp, end = 8.dp, bottom = 4.dp)
+        ) {
+            if (mediaFile != null) {
+
+                Column(modifier = Modifier.padding(8.dp)) {
+                    Text(
+                        color = MaterialTheme.colorScheme.secondary,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.fillMaxWidth(),
+                        text = folderCurrent,
+                        textAlign = TextAlign.Center
+                    )
+                    Spacer(modifier = Modifier.height(2.dp))
+                    Text(
+                        modifier = Modifier.fillMaxWidth(),
+                        text = mediaFile.lastModified()
+                            .toLocalDateTime()
+                            .toFormattedString(includeTime = true),
+                        color = MaterialTheme.colorScheme.onSurface,
+                        textAlign = TextAlign.Center
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun FrameViewerCardMedia(mediaFile: DocumentFile?) {
     var showDetails by viewModelApp.mediaViewDetails
 
     if (showDetails) {
         ElevatedCard(
             modifier = Modifier
-                .padding(top = 4.dp, start = 16.dp, end = 16.dp, bottom = 16.dp)
+                .padding(top = 4.dp, start = 8.dp, end = 8.dp, bottom = 8.dp)
                 .fillMaxSize()
         ) {
             FrameViewerCardMediaImage(mediaFile = mediaFile)
@@ -88,8 +125,10 @@ fun FrameViewerCardMedia(mediaFile: DocumentFile) {
 }
 
 @Composable
-fun FrameViewerCardMediaImage(mediaFile: DocumentFile) {
+fun FrameViewerCardMediaImage(mediaFile: DocumentFile?) {
     var showDetails by viewModelApp.mediaViewDetails
+
+    if (mediaFile == null) return
 
     AsyncImage(
         modifier = Modifier
@@ -100,36 +139,4 @@ fun FrameViewerCardMediaImage(mediaFile: DocumentFile) {
         contentDescription = null,
         contentScale = ContentScale.Fit,
     )
-}
-
-
-@Composable
-fun FrameViewerCardInfo(mediaFile: DocumentFile) {
-    val folderCurrent by viewModelApp.folderCurrent
-    var showDetails by viewModelApp.mediaViewDetails
-
-    if (showDetails) {
-        Card(
-            modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp, bottom = 4.dp)
-        ) {
-            Column(modifier = Modifier.padding(8.dp)) {
-                Text(
-                    color = MaterialTheme.colorScheme.secondary,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.fillMaxWidth(),
-                    text = folderCurrent,
-                    textAlign = TextAlign.Center
-                )
-                Spacer(modifier = Modifier.height(2.dp))
-                Text(
-                    modifier = Modifier.fillMaxWidth(),
-                    text = mediaFile.lastModified()
-                        .toLocalDateTime()
-                        .toFormattedString(includeTime = true),
-                    color = MaterialTheme.colorScheme.onSurface,
-                    textAlign = TextAlign.Center
-                )
-            }
-        }
-    }
 }
