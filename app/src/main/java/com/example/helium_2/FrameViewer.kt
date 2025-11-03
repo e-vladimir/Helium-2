@@ -1,10 +1,14 @@
 package com.example.helium_2
 
+import android.content.res.Configuration
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Arrangement
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
@@ -15,9 +19,15 @@ import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Crop
+import androidx.compose.material.icons.filled.DeleteOutline
+import androidx.compose.material.icons.filled.Rotate90DegreesCcw
 
 import androidx.compose.material3.Card
 import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -25,20 +35,20 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
-
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.documentfile.provider.DocumentFile
 
 import coil.compose.AsyncImage
 
 
-@Preview(showSystemUi = true)
 @Composable
 fun FrameViewerCard() {
     val mediaFiles = viewModelApp.mediaFiles
@@ -58,10 +68,13 @@ fun FrameViewerCard() {
             val pageFile = mediaFiles[mediaKeys[page]]
 
             Column(
-                modifier = Modifier.windowInsetsPadding(WindowInsets.safeDrawing)
+                modifier = Modifier
+                    .fillMaxSize()
+                    .windowInsetsPadding(WindowInsets.safeDrawing)
             ) {
                 FrameViewerCardInfo(mediaFile = pageFile)
-                FrameViewerCardMedia(mediaFile = pageFile)
+                FrameViewerCardMedia(mediaFile = pageFile, modifier = Modifier.weight(1.0f))
+                FrameViewerCardTools()
             }
         }
     }
@@ -71,8 +84,9 @@ fun FrameViewerCard() {
 fun FrameViewerCardInfo(mediaFile: DocumentFile?) {
     val folderCurrent by viewModelApp.folderCurrent
     var showDetails by viewModelApp.mediaViewDetails
+    val isLandscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
 
-    if (showDetails) {
+    if (showDetails and !isLandscape) {
         Card(
             modifier = Modifier.padding(top = 8.dp, start = 8.dp, end = 8.dp, bottom = 4.dp)
         ) {
@@ -102,21 +116,20 @@ fun FrameViewerCardInfo(mediaFile: DocumentFile?) {
 }
 
 @Composable
-fun FrameViewerCardMedia(mediaFile: DocumentFile?) {
+fun FrameViewerCardMedia(mediaFile: DocumentFile?, modifier: Modifier) {
     var showDetails by viewModelApp.mediaViewDetails
+    val isLandscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
 
-    if (showDetails) {
+    if (showDetails and !isLandscape) {
         ElevatedCard(
-            modifier = Modifier
-                .padding(top = 4.dp, start = 8.dp, end = 8.dp, bottom = 8.dp)
-                .fillMaxSize()
+            modifier = modifier
+                .padding(top = 4.dp, start = 8.dp, end = 8.dp, bottom = 4.dp)
         ) {
             FrameViewerCardMediaImage(mediaFile = mediaFile)
         }
     } else {
         Box(
-            modifier = Modifier
-                .fillMaxSize()
+            modifier = modifier
                 .background(color = Color.Black)
         ) {
             FrameViewerCardMediaImage(mediaFile = mediaFile)
@@ -139,4 +152,44 @@ fun FrameViewerCardMediaImage(mediaFile: DocumentFile?) {
         contentDescription = null,
         contentScale = ContentScale.Fit,
     )
+}
+
+@Composable
+fun FrameViewerCardTools() {
+    var showDetails by viewModelApp.mediaViewDetails
+    val isLandscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
+
+    if (showDetails and !isLandscape) {
+        Card(
+            modifier = Modifier
+                .padding(top = 4.dp, start = 8.dp, end = 8.dp, bottom = 8.dp)
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(4.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center
+            ) {
+                IconButton(onClick = {}) {
+                    Icon(
+                        imageVector = Icons.Default.Crop,
+                        contentDescription = null
+                    )
+                }
+                IconButton(onClick = {}) {
+                    Icon(
+                        imageVector = Icons.Default.Rotate90DegreesCcw,
+                        contentDescription = null
+                    )
+                }
+                IconButton(onClick = {}) {
+                    Icon(
+                        imageVector = Icons.Default.DeleteOutline,
+                        contentDescription = null
+                    )
+                }
+            }
+        }
+    }
 }
