@@ -40,7 +40,7 @@ fun FrameMedia(modifier: Modifier = Modifier, navController: NavController) {
     LazyVerticalGrid(
         modifier = modifier
             .fillMaxSize()
-            .padding(8.dp), columns = GridCells.Fixed(4)
+            .padding(start = 16.dp, end = 16.dp, bottom = 8.dp), columns = GridCells.Fixed(4)
     ) {
         mediaGroups.keys.sortedDescending().forEach { mediaGroup ->
             item(key = mediaGroup, span = { GridItemSpan(4) }) {
@@ -82,7 +82,6 @@ fun MediaItem(mediaItem: DocumentFile, navController: NavController) {
         modifier = Modifier
             .aspectRatio(1f)
             .fillMaxSize()
-            .padding(1.dp)
             .border(1.dp, MaterialTheme.colorScheme.surfaceContainerLow)
             .clickable {
                 viewModelApp.mediaFile.value = mediaItem
