@@ -37,8 +37,7 @@ val KEY_FOLDERS = stringPreferencesKey("folders")
 
 
 enum class STATES {
-    PROCESSING,
-    WAITING
+    PROCESSING, WAITING
 }
 
 
@@ -61,6 +60,7 @@ class ViewModelApp : ViewModel() {
     var menuFolderVisible = mutableStateOf(false)
 
     var mediaViewDetails = mutableStateOf(false)
+    var mediaViewRotates = mutableStateMapOf<DocumentFile, Float>()
 
 
     suspend fun saveFolderPaths(context: Context) {
@@ -70,15 +70,9 @@ class ViewModelApp : ViewModel() {
     }
 
     suspend fun loadFolderPaths(context: Context) {
-        folderPaths = context
-            .dataStore
-            .data
-            .map { preferences -> preferences[KEY_FOLDERS] ?: "" }
-            .first()
-            .split("\n")
-            .filter { it.isNotEmpty() }
-            .map { it.toUri() }
-            .toMutableList()
+        folderPaths =
+            context.dataStore.data.map { preferences -> preferences[KEY_FOLDERS] ?: "" }.first()
+                .split("\n").filter { it.isNotEmpty() }.map { it.toUri() }.toMutableList()
 
         folderPaths.map { applyFolderPath(it) }
     }
@@ -121,7 +115,8 @@ class ViewModelApp : ViewModel() {
         mediaState.value = STATES.PROCESSING
 
         withContext(Dispatchers.IO) {
-            folderCounters[folderCurrent.value] = (folderProcessors[folderCurrent.value]?.readFiles(context) ?: 0).toString()
+            folderCounters[folderCurrent.value] =
+                (folderProcessors[folderCurrent.value]?.readFiles(context) ?: 0).toString()
             updateMediaGroups()
         }
 
@@ -162,11 +157,14 @@ class ViewModelApp : ViewModel() {
 
         viewModelScope.launch {
             mediaGroups.clear()
-            mediaGroups.putAll(
-                mediaFiles.keys.map { it.toLocalDate() }
-                    .map { mediaGroup -> mediaGroup to mediaFiles.filter { it.key.toLocalDate() == mediaGroup } })
+            mediaGroups.putAll(mediaFiles.keys.map { it.toLocalDate() }
+                .map { mediaGroup -> mediaGroup to mediaFiles.filter { it.key.toLocalDate() == mediaGroup } })
         }
 
         mediaState.value = STATES.WAITING
+    }
+
+    fun rotateMediaToCw(mediaFile: DocumentFile) {
+        mediaViewRotates[mediaFile] = (mediaViewRotates[mediaFile] ?: 0.0f)  + 90.0f
     }
 }

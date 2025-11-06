@@ -17,12 +17,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Crop
 import androidx.compose.material.icons.filled.DeleteOutline
 import androidx.compose.material.icons.filled.Rotate90DegreesCw
 import androidx.compose.material.icons.filled.Share
@@ -42,13 +40,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.core.view.WindowInsetsControllerCompat
 import androidx.documentfile.provider.DocumentFile
 
 import coil.compose.AsyncImage
@@ -79,7 +76,7 @@ fun FrameViewerCard() {
             ) {
                 FrameViewerCardInfo(mediaFile = pageFile)
                 FrameViewerCardMedia(mediaFile = pageFile, modifier = Modifier.weight(1.0f))
-                FrameViewerCardTools()
+                FrameViewerCardTools(mediaFile = pageFile)
             }
         }
     }
@@ -145,14 +142,16 @@ fun FrameViewerCardMedia(mediaFile: DocumentFile?, modifier: Modifier) {
 @Composable
 fun FrameViewerCardMediaImage(mediaFile: DocumentFile?) {
     var showDetails by viewModelApp.mediaViewDetails
+    val mediaViewRotates = viewModelApp.mediaViewRotates
 
     if (mediaFile == null) return
 
     AsyncImage(
         modifier = Modifier
+            .graphicsLayer { rotationZ = (mediaViewRotates[mediaFile] ?: 0.0f) }
             .fillMaxSize()
-            .clickable { showDetails = !showDetails }
-            .background(color = Color.Black),
+            .background(color = Color.Black)
+            .clickable { showDetails = !showDetails },
         model = mediaFile.uri,
         contentDescription = null,
         contentScale = ContentScale.Fit,
@@ -160,9 +159,11 @@ fun FrameViewerCardMediaImage(mediaFile: DocumentFile?) {
 }
 
 @Composable
-fun FrameViewerCardTools() {
+fun FrameViewerCardTools(mediaFile: DocumentFile?) {
     var showDetails by viewModelApp.mediaViewDetails
     val isLandscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
+
+    if (mediaFile == null) return
 
     if (showDetails and !isLandscape) {
         Card(
@@ -177,7 +178,7 @@ fun FrameViewerCardTools() {
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Center
             ) {
-                IconButton(onClick = {}) {
+                IconButton(onClick = {viewModelApp.rotateMediaToCw(mediaFile)}) {
                     Icon(
                         imageVector = Icons.Default.Rotate90DegreesCw,
                         contentDescription = null
