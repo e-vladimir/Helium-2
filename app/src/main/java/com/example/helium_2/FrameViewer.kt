@@ -1,5 +1,7 @@
 package com.example.helium_2
 
+import android.content.Context
+import android.content.Intent
 import android.content.res.Configuration
 
 import androidx.compose.foundation.background
@@ -43,6 +45,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -50,6 +53,17 @@ import androidx.documentfile.provider.DocumentFile
 
 import coil.compose.AsyncImage
 
+
+fun shareMedia(context: Context, mediaFile: DocumentFile) {
+    val shareFileIntent = Intent().apply {
+        action = Intent.ACTION_SEND
+        type = "image/*"
+        putExtra(Intent.EXTRA_STREAM, mediaFile.uri)
+        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+    }
+
+    context.startActivity(Intent.createChooser(shareFileIntent, null))
+}
 
 @Composable
 fun FrameViewerCard() {
@@ -162,6 +176,7 @@ fun FrameViewerCardMediaImage(mediaFile: DocumentFile?) {
 fun FrameViewerCardTools(mediaFile: DocumentFile?) {
     var showDetails by viewModelApp.mediaViewDetails
     val isLandscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
+    val context = LocalContext.current
 
     if (mediaFile == null) return
 
@@ -178,14 +193,19 @@ fun FrameViewerCardTools(mediaFile: DocumentFile?) {
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Center
             ) {
-                IconButton(onClick = {viewModelApp.rotateMediaToCw(mediaFile)}) {
+                IconButton(onClick = { viewModelApp.rotateMediaToCw(mediaFile) }) {
                     Icon(
                         imageVector = Icons.Default.Rotate90DegreesCw,
                         contentDescription = null
                     )
                 }
 
-                IconButton(onClick = {}) {
+                IconButton(onClick = {
+                    shareMedia(
+                        context = context,
+                        mediaFile = mediaFile
+                    )
+                }) {
                     Icon(
                         imageVector = Icons.Default.Share,
                         contentDescription = null

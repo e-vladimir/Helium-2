@@ -3,6 +3,7 @@
 package com.example.helium_2
 
 import android.content.Context
+import android.content.Intent
 
 import android.net.Uri
 
@@ -165,6 +166,6 @@ class ViewModelApp : ViewModel() {
     }
 
     fun rotateMediaToCw(mediaFile: DocumentFile) {
-        mediaViewRotates[mediaFile] = (mediaViewRotates[mediaFile] ?: 0.0f)  + 90.0f
+        mediaViewRotates[mediaFile] = (mediaViewRotates[mediaFile] ?: 0.0f) + 90.0f
     }
 }
