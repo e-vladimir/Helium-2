@@ -33,6 +33,7 @@ import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Folder
 import androidx.compose.material.icons.outlined.HideImage
+import androidx.compose.material.icons.outlined.Visibility
 
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -79,7 +80,7 @@ import androidx.navigation.NavController
 import kotlinx.coroutines.launch
 
 
-const val VERSION = "08 ноя 2025"
+const val VERSION = "13 ноя 2025"
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -255,9 +256,16 @@ fun MenuFolder() {
             })
     }
 
-
     DropdownMenu(
         expanded = menuFolderVisible, onDismissRequest = { menuFolderVisible = false }) {
+        DropdownMenuItem(onClick = {
+            menuFolderVisible = false
+        }, text = { Text("Показать скрытое") }, leadingIcon = {
+            Icon(
+                imageVector = Icons.Outlined.Visibility, contentDescription = null
+            )
+        })
+
         DropdownMenuItem(onClick = {
             menuFolderVisible = false
             dialogForgetFolderVisible = true
