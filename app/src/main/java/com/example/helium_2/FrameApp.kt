@@ -88,7 +88,9 @@ const val VERSION = "13 ноя 2025"
 fun FrameApp(navController: NavController) {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
-    val leftPanelState = rememberDrawerState(initialValue = DrawerValue.Open)
+    val appStarted by viewModelApp.appStarted
+    val leftPanelState =
+        rememberDrawerState(initialValue = if (appStarted) DrawerValue.Closed else DrawerValue.Open)
     val stateRefresh = rememberPullToRefreshState()
     var isRefreshing by remember { mutableStateOf(false) }
     var leftPanelVisible by viewModelApp.leftPanelVisible
@@ -113,13 +115,11 @@ fun FrameApp(navController: NavController) {
         drawerContent = { FrameFolders() }, drawerState = leftPanelState
     ) {
         Scaffold(
-            modifier =
-                Modifier.pullToRefresh(
-                    state = stateRefresh,
-                    isRefreshing = isRefreshing,
-                    onRefresh = onRefresh,
-                ),
-            topBar = { FrameAppTopBar() }) { innerPadding ->
+            modifier = Modifier.pullToRefresh(
+                state = stateRefresh,
+                isRefreshing = isRefreshing,
+                onRefresh = onRefresh,
+            ), topBar = { FrameAppTopBar() }) { innerPadding ->
 
             Box(
                 modifier = Modifier
@@ -128,9 +128,7 @@ fun FrameApp(navController: NavController) {
             ) {
                 FrameMedia(navController = navController)
                 FrameAppIndicatorPullToRefresh(
-                    Modifier.align(Alignment.TopCenter),
-                    stateRefresh,
-                    isRefreshing
+                    Modifier.align(Alignment.TopCenter), stateRefresh, isRefreshing
                 )
                 FrameAppIndicatorRefresh(Modifier.align(Alignment.Center))
 
@@ -142,14 +140,10 @@ fun FrameApp(navController: NavController) {
 
 @Composable
 fun FrameAppIndicatorPullToRefresh(
-    modifier: Modifier = Modifier,
-    state: PullToRefreshState,
-    flag: Boolean
+    modifier: Modifier = Modifier, state: PullToRefreshState, flag: Boolean
 ) {
     PullToRefreshDefaults.Indicator(
-        modifier = modifier,
-        state = state,
-        isRefreshing = flag
+        modifier = modifier, state = state, isRefreshing = flag
     )
 }
 
@@ -169,21 +163,17 @@ fun FrameAppIndicatorRefresh(modifier: Modifier = Modifier) {
             modifier = modifier
                 .size(48.dp)
                 .background(
-                    color = MaterialTheme.colorScheme.surfaceContainerLow,
-                    shape = CircleShape
+                    color = MaterialTheme.colorScheme.surfaceContainerLow, shape = CircleShape
                 )
                 .border(
                     width = 1.dp,
                     color = MaterialTheme.colorScheme.surfaceContainerHigh,
                     shape = CircleShape
-                ),
-            contentAlignment = Alignment.Center
+                ), contentAlignment = Alignment.Center
 
         ) {
             CircularProgressIndicator(
-                modifier = Modifier
-                    .size(24.dp),
-                strokeWidth = 2.dp
+                modifier = Modifier.size(24.dp), strokeWidth = 2.dp
             )
         }
     }
@@ -204,9 +194,7 @@ fun FrameAppTopBar() {
 
 @Composable
 fun FrameAppHeaderNavigationIcon() {
-    var leftPanelVisible by viewModelApp.leftPanelVisible
-
-    IconButton(onClick = { leftPanelVisible = true }) {
+    IconButton(onClick = { viewModelApp.leftPanelVisible.value = true }) {
         Icon(Icons.Default.Menu, contentDescription = "Menu")
     }
 }
@@ -215,11 +203,10 @@ fun FrameAppHeaderNavigationIcon() {
 @Composable
 fun FrameAppHeaderActions() {
     val folderSelected by viewModelApp.folderCurrent
-    var menuFolderVisible by viewModelApp.menuFolderVisible
 
     if (folderSelected.isEmpty()) return
 
-    IconButton(onClick = { menuFolderVisible = true }) {
+    IconButton(onClick = { viewModelApp.menuFolderVisible.value = true }) {
         Icon(Icons.Default.MoreVert, "Меню")
     }
 
@@ -366,7 +353,6 @@ fun ButtonAddFolder() {
 
 @Composable
 fun ButtonFolder(folder: String, count: String) {
-    val context = LocalContext.current
     var currentFolder by viewModelApp.folderCurrent
     val coroutineScope = rememberCoroutineScope()
     val selected = currentFolder == folder
@@ -388,7 +374,7 @@ fun ButtonFolder(folder: String, count: String) {
         }
     }, onClick = {
         coroutineScope.launch {
-            viewModelApp.switchFolderCurrentByName(folder, context)
+            viewModelApp.switchFolderCurrentByName(folder)
         }
     })
 }

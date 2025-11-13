@@ -3,7 +3,6 @@
 package com.example.helium_2
 
 import android.content.Context
-import android.content.Intent
 
 import android.net.Uri
 
@@ -43,6 +42,8 @@ enum class STATES {
 
 
 class ViewModelApp : ViewModel() {
+    var appStarted = mutableStateOf(false)
+
     var dialogForgetFolderVisible = mutableStateOf(false)
 
     var folderCounters = mutableStateMapOf<String, String>()
@@ -133,9 +134,11 @@ class ViewModelApp : ViewModel() {
                 }
             }.awaitAll()
         }
+
+        appStarted.value = true
     }
 
-    suspend fun switchFolderCurrentByName(folderName: String, context: Context) {
+    suspend fun switchFolderCurrentByName(folderName: String) {
         if (folderName == folderCurrent.value) return
 
         leftPanelVisible.value = false
