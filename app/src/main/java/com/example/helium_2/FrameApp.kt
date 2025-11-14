@@ -1,4 +1,4 @@
-// UI КАРКАС ПРИЛОЖЕНИЯ
+// ОСНОВНАЯ ФОРМА
 
 package com.example.helium_2
 
@@ -80,7 +80,7 @@ import androidx.navigation.NavController
 import kotlinx.coroutines.launch
 
 
-const val VERSION = "13 ноя 2025"
+const val VERSION = "14 ноя 2025"
 
 
 @OptIn(ExperimentalMaterial3Api::class)

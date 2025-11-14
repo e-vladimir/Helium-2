@@ -15,14 +15,15 @@ enum class MIME(val sign: String) {
 
 
 class FolderProcessor(val folderPath: Uri) {
-    var files = listOf<DocumentFile>()
+    var files = listOf<MediaFile>()
 
     fun readFiles(context: Context): Int? {
         try {
             files = DocumentFile
                 .fromTreeUri(context, folderPath)
                 ?.listFiles()!!
-                .filter { documentFile -> documentFile.type?.startsWith(MIME.IMAGES.sign) == true }
+                .map { MediaFile(it) }
+                .filter { it.type.startsWith(MIME.IMAGES.sign) }
                 .toList()
 
             return countFiles()
@@ -33,4 +34,5 @@ class FolderProcessor(val folderPath: Uri) {
     }
 
     fun countFiles(): Int = files.count()
+
 }

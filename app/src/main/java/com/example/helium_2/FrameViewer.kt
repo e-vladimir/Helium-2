@@ -1,3 +1,5 @@
+// ПРОСМОТР МЕДИА
+
 package com.example.helium_2
 
 import android.content.Context
@@ -7,7 +9,6 @@ import android.content.res.Configuration
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
@@ -22,6 +23,7 @@ import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
+
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DeleteOutline
 import androidx.compose.material.icons.filled.Rotate90DegreesCw
@@ -39,9 +41,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
+
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
@@ -50,12 +52,11 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.documentfile.provider.DocumentFile
 
 import coil.compose.AsyncImage
 
 
-fun shareMedia(context: Context, mediaFile: DocumentFile) {
+fun shareMedia(context: Context, mediaFile: MediaFile) {
     val shareFileIntent = Intent().apply {
         action = Intent.ACTION_SEND
         type = "image/*"
@@ -74,7 +75,7 @@ fun FrameViewerCard() {
 
     val pagerState = rememberPagerState(
         initialPage = mediaKeys.indexOf(
-            mediaFile?.lastModified()?.toLocalDateTime()
+            mediaFile?.dateTime
         ), pageCount = { mediaFiles.count() })
 
     Surface(
@@ -98,7 +99,7 @@ fun FrameViewerCard() {
 }
 
 @Composable
-fun FrameViewerCardInfo(mediaFile: DocumentFile?) {
+fun FrameViewerCardInfo(mediaFile: MediaFile?) {
     val folderCurrent by viewModelApp.folderCurrent
     var showDetails by viewModelApp.mediaViewDetails
     val isLandscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
@@ -117,12 +118,12 @@ fun FrameViewerCardInfo(mediaFile: DocumentFile?) {
                         text = folderCurrent,
                         textAlign = TextAlign.Center
                     )
+
                     Spacer(modifier = Modifier.height(2.dp))
+
                     Text(
                         modifier = Modifier.fillMaxWidth(),
-                        text = mediaFile.lastModified()
-                            .toLocalDateTime()
-                            .toFormattedString(includeTime = true),
+                        text = mediaFile.fileTime,
                         color = MaterialTheme.colorScheme.onSurface,
                         textAlign = TextAlign.Center
                     )
@@ -133,7 +134,7 @@ fun FrameViewerCardInfo(mediaFile: DocumentFile?) {
 }
 
 @Composable
-fun FrameViewerCardMedia(mediaFile: DocumentFile?, modifier: Modifier) {
+fun FrameViewerCardMedia(mediaFile: MediaFile?, modifier: Modifier) {
     var showDetails by viewModelApp.mediaViewDetails
     val isLandscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
 
@@ -155,78 +156,84 @@ fun FrameViewerCardMedia(mediaFile: DocumentFile?, modifier: Modifier) {
 }
 
 @Composable
-fun FrameViewerCardMediaImage(mediaFile: DocumentFile?) {
+fun FrameViewerCardMediaImage(mediaFile: MediaFile?) {
+    if (mediaFile == null) return
+
     var showDetails by viewModelApp.mediaViewDetails
     val mediaViewRotates = viewModelApp.mediaViewRotates
 
-    if (mediaFile == null) return
-
-    AsyncImage(
-        modifier = Modifier
-            .graphicsLayer { rotationZ = (mediaViewRotates[mediaFile] ?: 0.0f) }
-            .fillMaxSize()
-            .background(color = Color.Black)
-            .clickable { showDetails = !showDetails },
-        model = mediaFile.uri,
-        contentDescription = null,
-        contentScale = ContentScale.Fit,
-    )
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        AsyncImage(
+            modifier = Modifier
+                .graphicsLayer { rotationZ = (mediaViewRotates[mediaFile] ?: 0.0f) }
+                .fillMaxSize()
+                .background(color = Color.Black)
+                .clickable { showDetails = !showDetails },
+            model = mediaFile.uri,
+            contentDescription = null,
+            contentScale = ContentScale.Fit,
+        )
+    }
 }
 
 @Composable
-fun FrameViewerCardTools(mediaFile: DocumentFile?) {
+fun FrameViewerCardTools(mediaFile: MediaFile?) {
     var showDetails by viewModelApp.mediaViewDetails
     val isLandscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
     val context = LocalContext.current
 
     if (mediaFile == null) return
+    if (!showDetails) return
+    if (isLandscape) return
 
-    if (showDetails and !isLandscape) {
-        Card(
+    Card(
+        modifier = Modifier
+            .padding(top = 4.dp, start = 8.dp, end = 8.dp, bottom = 8.dp)
+    ) {
+        Row(
             modifier = Modifier
-                .padding(top = 4.dp, start = 8.dp, end = 8.dp, bottom = 8.dp)
+                .fillMaxWidth()
+                .padding(4.dp)
+                .height(IntrinsicSize.Min),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center
         ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(4.dp)
-                    .height(IntrinsicSize.Min),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center
-            ) {
-                IconButton(onClick = { viewModelApp.rotateMediaToCw(mediaFile) }) {
-                    Icon(
-                        imageVector = Icons.Default.Rotate90DegreesCw,
-                        contentDescription = null
-                    )
-                }
+            IconButton(onClick = { viewModelApp.rotateMediaToCw(mediaFile) }) {
+                Icon(
+                    imageVector = Icons.Default.Rotate90DegreesCw,
+                    contentDescription = null
+                )
+            }
 
-                IconButton(onClick = {
-                    shareMedia(
-                        context = context,
-                        mediaFile = mediaFile
-                    )
-                }) {
-                    Icon(
-                        imageVector = Icons.Default.Share,
-                        contentDescription = null
-                    )
-                }
+            IconButton(onClick = {
+                shareMedia(
+                    context = context,
+                    mediaFile = mediaFile
+                )
+            }) {
+                Icon(
+                    imageVector = Icons.Default.Share,
+                    contentDescription = null
+                )
+            }
 
-                IconButton(onClick = {}) {
-                    Icon(
-                        imageVector = Icons.Default.VisibilityOff,
-                        contentDescription = null
-                    )
-                }
+            IconButton(onClick = {}) {
+                Icon(
+                    imageVector = Icons.Default.VisibilityOff,
+                    contentDescription = null
+                )
+            }
 
-                IconButton(onClick = {}) {
-                    Icon(
-                        imageVector = Icons.Default.DeleteOutline,
-                        contentDescription = null
-                    )
-                }
+            IconButton(onClick = {}) {
+                Icon(
+                    imageVector = Icons.Default.DeleteOutline,
+                    contentDescription = null
+                )
             }
         }
     }
+
 }

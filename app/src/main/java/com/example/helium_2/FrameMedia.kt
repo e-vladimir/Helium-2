@@ -1,4 +1,4 @@
-// UI КАРКАС МЕДИА
+// ГАЛЕРЕЯ
 
 package com.example.helium_2
 
@@ -24,7 +24,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 
-import androidx.documentfile.provider.DocumentFile
 import androidx.navigation.NavController
 
 import coil.compose.AsyncImage
@@ -48,10 +47,10 @@ fun FrameMedia(modifier: Modifier = Modifier, navController: NavController) {
             }
 
             mediaGroups[mediaGroup]?.toSortedMap(Comparator.reverseOrder())
-                ?.forEach { (mediaDateTime, mediaItem) ->
+                ?.forEach { (mediaDateTime, mediaFile) ->
                     item(key = mediaDateTime) {
                         MediaItem(
-                            mediaItem = mediaItem,
+                            mediaFile = mediaFile,
                             navController = navController
                         )
                     }
@@ -74,9 +73,9 @@ fun MediaGroup(mediaDate: LocalDate) {
 
 
 @Composable
-fun MediaItem(mediaItem: DocumentFile, navController: NavController) {
+fun MediaItem(mediaFile: MediaFile, navController: NavController) {
     AsyncImage(
-        model = mediaItem.uri,
+        model = mediaFile.uri,
         contentDescription = null,
         contentScale = ContentScale.Crop,
         modifier = Modifier
@@ -84,7 +83,7 @@ fun MediaItem(mediaItem: DocumentFile, navController: NavController) {
             .fillMaxSize()
             .border(1.dp, MaterialTheme.colorScheme.surfaceContainerLow)
             .clickable {
-                viewModelApp.mediaFile.value = mediaItem
+                viewModelApp.mediaFile.value = mediaFile
                 navController.navigate(SCREENS.MEDIA.screen)
             }
     )

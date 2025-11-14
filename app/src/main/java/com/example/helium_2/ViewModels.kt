@@ -14,8 +14,6 @@ import androidx.core.net.toUri
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 
-import androidx.documentfile.provider.DocumentFile
-
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 
@@ -55,14 +53,14 @@ class ViewModelApp : ViewModel() {
     var leftPanelVisible = mutableStateOf(false)
 
     var mediaState = mutableStateOf(STATES.WAITING)
-    var mediaFiles = mutableStateMapOf<LocalDateTime, DocumentFile>()
-    var mediaGroups = mutableStateMapOf<LocalDate, Map<LocalDateTime, DocumentFile>>()
-    var mediaFile = mutableStateOf<DocumentFile?>(null)
+    var mediaFiles = mutableStateMapOf<LocalDateTime, MediaFile>()
+    var mediaGroups = mutableStateMapOf<LocalDate, Map<LocalDateTime, MediaFile>>()
+    var mediaFile = mutableStateOf<MediaFile?>(null)
 
     var menuFolderVisible = mutableStateOf(false)
 
     var mediaViewDetails = mutableStateOf(false)
-    var mediaViewRotates = mutableStateMapOf<DocumentFile, Float>()
+    var mediaViewRotates = mutableStateMapOf<MediaFile, Float>()
 
 
     suspend fun saveFolderPaths(context: Context) {
@@ -72,9 +70,8 @@ class ViewModelApp : ViewModel() {
     }
 
     suspend fun loadFolderPaths(context: Context) {
-        folderPaths =
-            context.dataStore.data.map { preferences -> preferences[KEY_FOLDERS] ?: "" }.first()
-                .split("\n").filter { it.isNotEmpty() }.map { it.toUri() }.toMutableList()
+        folderPaths = context.dataStore.data.map { preferences -> preferences[KEY_FOLDERS] ?: "" }.first().split("\n").filter { it.isNotEmpty() }
+            .map { it.toUri() }.toMutableList()
 
         folderPaths.map { applyFolderPath(it) }
     }
@@ -98,9 +95,7 @@ class ViewModelApp : ViewModel() {
     }
 
     fun forgetFolderCurrent(context: Context) {
-        folderPaths =
-            folderPaths.filterNot { folderPath -> uriToString(folderPath) == folderCurrent.value }
-                .toMutableList()
+        folderPaths = folderPaths.filterNot { folderPath -> uriToString(folderPath) == folderCurrent.value }.toMutableList()
 
         viewModelScope.launch {
             saveFolderPaths(context)
@@ -117,8 +112,7 @@ class ViewModelApp : ViewModel() {
         mediaState.value = STATES.PROCESSING
 
         withContext(Dispatchers.IO) {
-            folderCounters[folderCurrent.value] =
-                (folderProcessors[folderCurrent.value]?.readFiles(context) ?: 0).toString()
+            folderCounters[folderCurrent.value] = (folderProcessors[folderCurrent.value]?.readFiles(context) ?: 0).toString()
             updateMediaGroups()
         }
 
@@ -129,8 +123,7 @@ class ViewModelApp : ViewModel() {
         withContext(Dispatchers.IO) {
             folderCounters.keys.map { folderName ->
                 async {
-                    folderCounters[folderName] =
-                        (folderProcessors[folderName]?.readFiles(context) ?: 0).toString()
+                    folderCounters[folderName] = (folderProcessors[folderName]?.readFiles(context) ?: 0).toString()
                 }
             }.awaitAll()
         }
@@ -138,7 +131,7 @@ class ViewModelApp : ViewModel() {
         appStarted.value = true
     }
 
-    suspend fun switchFolderCurrentByName(folderName: String) {
+    fun switchFolderCurrentByName(folderName: String) {
         if (folderName == folderCurrent.value) return
 
         leftPanelVisible.value = false
@@ -152,23 +145,19 @@ class ViewModelApp : ViewModel() {
         updateMediaGroups()
     }
 
-    suspend fun updateMediaGroups() {
-        withContext(Dispatchers.IO) {
-            mediaFiles.putAll(folderProcessor.value?.files?.map {
-                it.lastModified().toLocalDateTime() to it
-            }!!.toMap())
-        }
+    fun updateMediaGroups() {
+        mediaFiles.putAll(folderProcessor.value?.files?.map {
+            it.dateTime to it
+        }!!.toMap())
 
-        viewModelScope.launch {
-            mediaGroups.clear()
-            mediaGroups.putAll(mediaFiles.keys.map { it.toLocalDate() }
-                .map { mediaGroup -> mediaGroup to mediaFiles.filter { it.key.toLocalDate() == mediaGroup } })
-        }
+        mediaGroups.clear()
+        mediaGroups.putAll(mediaFiles.keys.map { it.toLocalDate() }
+            .map { mediaGroup -> mediaGroup to mediaFiles.filter { it.key.toLocalDate() == mediaGroup } })
 
         mediaState.value = STATES.WAITING
     }
 
-    fun rotateMediaToCw(mediaFile: DocumentFile) {
+    fun rotateMediaToCw(mediaFile: MediaFile) {
         mediaViewRotates[mediaFile] = (mediaViewRotates[mediaFile] ?: 0.0f) + 90.0f
     }
 }
