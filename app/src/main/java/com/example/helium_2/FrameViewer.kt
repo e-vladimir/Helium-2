@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
@@ -44,6 +45,7 @@ import androidx.compose.runtime.setValue
 
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
@@ -75,7 +77,7 @@ fun FrameViewerCard() {
 
     val pagerState = rememberPagerState(
         initialPage = mediaKeys.indexOf(
-            mediaFile?.dateTime
+            mediaFile?.fileTime
         ), pageCount = { mediaFiles.count() })
 
     Surface(
@@ -112,9 +114,9 @@ fun FrameViewerCardInfo(mediaFile: MediaFile?) {
 
                 Column(modifier = Modifier.padding(8.dp)) {
                     Text(
+                        modifier = Modifier.fillMaxWidth(),
                         color = MaterialTheme.colorScheme.secondary,
                         fontWeight = FontWeight.Bold,
-                        modifier = Modifier.fillMaxWidth(),
                         text = folderCurrent,
                         textAlign = TextAlign.Center
                     )
@@ -123,7 +125,7 @@ fun FrameViewerCardInfo(mediaFile: MediaFile?) {
 
                     Text(
                         modifier = Modifier.fillMaxWidth(),
-                        text = mediaFile.fileTime,
+                        text = mediaFile.mediaTime,
                         color = MaterialTheme.colorScheme.onSurface,
                         textAlign = TextAlign.Center
                     )
@@ -176,6 +178,19 @@ fun FrameViewerCardMediaImage(mediaFile: MediaFile?) {
             contentDescription = null,
             contentScale = ContentScale.Fit,
         )
+
+        if (mediaFile.isHidden) {
+            Icon(
+                modifier = Modifier
+                    .size(48.dp)
+                    .align(Alignment.TopCenter)
+                    .padding(top = 16.dp)
+                    .alpha(0.5f),
+                imageVector = Icons.Default.VisibilityOff,
+                contentDescription = null,
+                tint = Color.Gray
+            )
+        }
     }
 }
 

@@ -80,7 +80,7 @@ import androidx.navigation.NavController
 import kotlinx.coroutines.launch
 
 
-const val VERSION = "14 ноя 2025"
+const val VERSION = "15 ноя 2025"
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -89,8 +89,7 @@ fun FrameApp(navController: NavController) {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
     val appStarted by viewModelApp.appStarted
-    val leftPanelState =
-        rememberDrawerState(initialValue = if (appStarted) DrawerValue.Closed else DrawerValue.Open)
+    val leftPanelState = rememberDrawerState(initialValue = if (appStarted) DrawerValue.Closed else DrawerValue.Open)
     val stateRefresh = rememberPullToRefreshState()
     var isRefreshing by remember { mutableStateOf(false) }
     var leftPanelVisible by viewModelApp.leftPanelVisible

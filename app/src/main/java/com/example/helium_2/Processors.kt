@@ -8,12 +8,6 @@ import android.net.Uri
 import androidx.documentfile.provider.DocumentFile
 
 
-enum class MIME(val sign: String) {
-    IMAGES("image/"),
-    VIDEO("video/")
-}
-
-
 class FolderProcessor(val folderPath: Uri) {
     var files = listOf<MediaFile>()
 
@@ -23,7 +17,7 @@ class FolderProcessor(val folderPath: Uri) {
                 .fromTreeUri(context, folderPath)
                 ?.listFiles()!!
                 .map { MediaFile(it) }
-                .filter { it.type.startsWith(MIME.IMAGES.sign) }
+                .filter { it.isImage }
                 .toList()
 
             return countFiles()

@@ -147,7 +147,7 @@ class ViewModelApp : ViewModel() {
 
     fun updateMediaGroups() {
         mediaFiles.putAll(folderProcessor.value?.files?.map {
-            it.dateTime to it
+            it.fileTime to it
         }!!.toMap())
 
         mediaGroups.clear()
