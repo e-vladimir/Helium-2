@@ -2,8 +2,10 @@
 
 package com.example.helium_2
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -12,7 +14,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 
 import androidx.compose.material3.Card
@@ -39,22 +40,23 @@ fun FrameMedia(modifier: Modifier = Modifier, navController: NavController) {
     val mediaGroups = viewModelApp.mediaGroups
 
     LazyColumn(
-        modifier = modifier.padding(8.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
+        modifier = modifier.padding(start = 8.dp, end = 8.dp, top = 0.dp, bottom = 8.dp),
+        verticalArrangement = Arrangement.spacedBy(2.dp)
     ) {
-        items(items = mediaGroups.keys.sortedDescending(), key = { it.toFormattedString() }) {
-            Spacer(modifier = Modifier.height(8.dp))
+        mediaGroups.keys.sortedDescending().forEach { mediaGroup ->
+            stickyHeader {
+                MediaGroupHeader(
+                    mediaGroup = mediaGroup.toFormattedString()
+                )
+            }
 
-            MediaGroupHeader(
-                mediaGroup = it.toFormattedString()
-            )
+            item(key = mediaGroup.toFormattedString()) {
+                MediaGroup(
+                    mediaFiles = mediaGroups[mediaGroup] ?: emptyMap(), navController = navController
+                )
 
-            Spacer(modifier = Modifier.height(1.dp))
-
-            MediaGroup(
-                mediaFiles = mediaGroups[it] ?: emptyMap(),
-                navController = navController
-            )
+                Spacer(modifier = Modifier.height(8.dp))
+            }
         }
     }
 }
@@ -62,29 +64,38 @@ fun FrameMedia(modifier: Modifier = Modifier, navController: NavController) {
 
 @Composable
 fun MediaGroupHeader(mediaGroup: String) {
-    Text(
-        modifier = Modifier.padding(start = 8.dp),
-        text = mediaGroup,
-        color = MaterialTheme.colorScheme.secondary
-    )
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(color = MaterialTheme.colorScheme.background.copy(alpha = 0.90f))
+    ) {
+        Text(
+            modifier = Modifier.padding(start = 16.dp),
+            text = mediaGroup,
+            color = MaterialTheme.colorScheme.secondary
+        )
+    }
 }
+
 
 @Composable
 fun MediaGroup(mediaFiles: Map<LocalDateTime, MediaFile>, navController: NavController) {
-    Card(modifier = Modifier.fillMaxWidth()) {
-        Column(modifier = Modifier.padding(8.dp)) {
-            MediaGrid(
-                mediaFiles = mediaFiles,
-                navController = navController
-            )
-        }
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(start = 8.dp, end = 8.dp, bottom = 8.dp)
+    ) {
+        MediaGrid(
+            mediaFiles = mediaFiles,
+            navController = navController
+        )
     }
 }
 
 
 @Composable
 fun MediaGrid(mediaFiles: Map<LocalDateTime, MediaFile>, navController: NavController) {
-    Column {
+    Column(modifier = Modifier.padding(8.dp)) {
         mediaFiles.keys.sortedDescending().chunked(4).forEach { mediaTimes ->
             Row {
                 mediaTimes.forEach { mediaTime ->
@@ -120,7 +131,5 @@ fun MediaItem(modifier: Modifier, mediaFile: MediaFile, navController: NavContro
             .clickable {
                 viewModelApp.mediaFile.value = mediaFile
                 navController.navigate(SCREENS.MEDIA.screen)
-
-            }
-    )
+            })
 }

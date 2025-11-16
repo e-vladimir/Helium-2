@@ -29,6 +29,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DeleteOutline
 import androidx.compose.material.icons.filled.Rotate90DegreesCw
 import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 
 import androidx.compose.material3.Card
@@ -237,7 +238,7 @@ fun FrameViewerCardTools(mediaFile: MediaFile?) {
 
             IconButton(onClick = {}) {
                 Icon(
-                    imageVector = Icons.Default.VisibilityOff,
+                    imageVector = if (mediaFile.isHidden) Icons.Default.Visibility else Icons.Default.VisibilityOff,
                     contentDescription = null
                 )
             }
