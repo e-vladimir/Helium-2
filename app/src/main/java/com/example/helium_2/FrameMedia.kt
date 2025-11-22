@@ -126,7 +126,7 @@ fun MediaItem(modifier: Modifier, mediaFile: MediaFile, navController: NavContro
         contentScale = ContentScale.Crop,
         modifier = modifier
             .padding(1.dp)
-            .alpha(if (mediaFile.isHidden) 0.35f else 1.00f)
+            .alpha(if (mediaFile.isHidden) 0.20f else 1.00f)
             .clip(RoundedCornerShape(4.dp))
             .clickable {
                 viewModelApp.mediaFile.value = mediaFile

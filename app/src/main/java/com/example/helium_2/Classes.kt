@@ -8,25 +8,78 @@ import java.time.LocalDateTime
 
 
 enum class MIME(val sign: String) {
-    IMAGES("image/"),
-    VIDEO("video/")
+    IMAGES("image/"), VIDEO("video/")
 }
 
 
+class MediaFile {
+    private lateinit var _documentFile: DocumentFile
+    private lateinit var _fileTime: LocalDateTime
+    private lateinit var _mediaGroup: String
+    private lateinit var _mediaTime: String
+    private lateinit var _name: String
+    private lateinit var _type: String
+    private lateinit var _uri: Uri
+    private var _isHidden: Boolean = false
+    private var _isImage: Boolean = false
 
-class MediaFile(val documentFile: DocumentFile) {
-    val uri: Uri = documentFile.uri
-    val name: String = documentFile.name ?: ""
-    val type: String = documentFile.type ?: ""
-    val isHidden: Boolean = name.startsWith(".")
-    val isImage: Boolean = type.startsWith(MIME.IMAGES.sign)
-    val fileTime: LocalDateTime = documentFile.lastModified().toLocalDateTime()
-    val mediaGroup: String = fileTime.toLocalDate().toFormattedString()
-    val mediaTime: String = fileTime.toFormattedString(includeTime = true)
+    val documentFile: DocumentFile
+        get() = _documentFile
 
+    val uri: Uri
+        get() = _uri
+
+    val name: String
+        get() = _name
+
+    val type: String
+        get() = _type
+
+    val isHidden: Boolean
+        get() = _isHidden
+
+    val isImage: Boolean
+        get() = _isImage
+
+    val fileTime: LocalDateTime
+        get() = _fileTime
+
+    val mediaGroup: String
+        get() = _mediaGroup
+
+    val mediaTime: String
+        get() = _mediaTime
+
+    constructor(documentFile: DocumentFile) {
+        updateMediaFile(documentFile)
+    }
+
+    fun updateMediaFile(documentFile: DocumentFile?) {
+        if (documentFile != null) _documentFile = documentFile
+
+        _uri = _documentFile.uri
+        _name = _documentFile.name ?: ""
+        _type = _documentFile.type ?: ""
+        _isHidden = _name.startsWith(".")
+        _isImage = _type.startsWith(MIME.IMAGES.sign)
+        _fileTime = _documentFile.lastModified().toLocalDateTime()
+        _mediaGroup = _fileTime.toLocalDate().toFormattedString()
+        _mediaTime = _fileTime.toFormattedString(includeTime = true)
+    }
 
     fun switchVisible(): Boolean {
-        return false
+        val parentFile: DocumentFile = _documentFile.parentFile ?: return isHidden
+
+        val newFileName: String = when (_name.startsWith(".")) {
+            true -> _name.substring(1)
+            false -> ".${name}"
+        }
+
+        if (!_documentFile.renameTo(newFileName)) return isHidden
+
+        updateMediaFile(parentFile.findFile(newFileName) ?: return isHidden)
+
+        return isHidden
     }
 
     fun delete(): Boolean {

@@ -40,28 +40,28 @@ enum class STATES {
 
 
 class ViewModelApp : ViewModel() {
-    var appStarted = mutableStateOf(false)
+    val appStarted = mutableStateOf(false)
 
-    var dialogForgetFolderVisible = mutableStateOf(false)
+    val dialogForgetFolderVisible = mutableStateOf(false)
 
-    var folderCounters = mutableStateMapOf<String, String>()
-    var folderCurrent = mutableStateOf("")
+    val folderCounters = mutableStateMapOf<String, String>()
+    val folderCurrent = mutableStateOf("")
     var folderPaths = mutableListOf<Uri>()
-    var folderProcessor = mutableStateOf<FolderProcessor?>(null)
-    var folderProcessors = mutableMapOf<String, FolderProcessor>()
+    val folderProcessor = mutableStateOf<FolderProcessor?>(null)
+    val folderProcessors = mutableMapOf<String, FolderProcessor>()
 
-    var leftPanelVisible = mutableStateOf(false)
+    val leftPanelVisible = mutableStateOf(false)
 
-    var mediaState = mutableStateOf(STATES.WAITING)
-    var mediaFiles = mutableStateMapOf<LocalDateTime, MediaFile>()
-    var mediaGroups = mutableStateMapOf<LocalDate, Map<LocalDateTime, MediaFile>>()
-    var mediaFile = mutableStateOf<MediaFile?>(null)
+    val mediaState = mutableStateOf(STATES.WAITING)
+    val mediaFiles = mutableStateMapOf<LocalDateTime, MediaFile>()
+    val mediaGroups = mutableStateMapOf<LocalDate, Map<LocalDateTime, MediaFile>>()
+    val mediaFile = mutableStateOf<MediaFile?>(null)
 
-    var menuFolderVisible = mutableStateOf(false)
+    val menuFolderVisible = mutableStateOf(false)
 
-    var mediaViewDetails = mutableStateOf(false)
-    var mediaViewRotates = mutableStateMapOf<MediaFile, Float>()
-
+    val mediaViewDetails = mutableStateOf(false)
+    val mediaViewRotates = mutableStateMapOf<MediaFile, Float>()
+    val mediaViewHiddens = mutableStateMapOf<MediaFile, Boolean>()
 
     suspend fun saveFolderPaths(context: Context) {
         context.dataStore.edit { preferences ->
@@ -159,5 +159,9 @@ class ViewModelApp : ViewModel() {
 
     fun rotateMediaToCw(mediaFile: MediaFile) {
         mediaViewRotates[mediaFile] = (mediaViewRotates[mediaFile] ?: 0.0f) + 90.0f
+    }
+
+    fun switchVisibleMedia(mediaFile: MediaFile) {
+        mediaViewHiddens[mediaFile] = mediaFile.switchVisible()
     }
 }

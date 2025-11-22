@@ -164,6 +164,8 @@ fun FrameViewerCardMediaImage(mediaFile: MediaFile?) {
 
     var showDetails by viewModelApp.mediaViewDetails
     val mediaViewRotates = viewModelApp.mediaViewRotates
+    val mediaViewHiddens = viewModelApp.mediaViewHiddens
+    val isHidden = mediaViewHiddens[mediaFile] ?: mediaFile.isHidden
 
     Box(
         modifier = Modifier.fillMaxSize(),
@@ -180,7 +182,7 @@ fun FrameViewerCardMediaImage(mediaFile: MediaFile?) {
             contentScale = ContentScale.Fit,
         )
 
-        if (mediaFile.isHidden) {
+        if (isHidden) {
             Icon(
                 modifier = Modifier
                     .size(48.dp)
@@ -204,6 +206,9 @@ fun FrameViewerCardTools(mediaFile: MediaFile?) {
     if (mediaFile == null) return
     if (!showDetails) return
     if (isLandscape) return
+
+    val mediaViewHiddens = viewModelApp.mediaViewHiddens
+    val isHidden = mediaViewHiddens[mediaFile] ?: mediaFile.isHidden
 
     Card(
         modifier = Modifier
@@ -236,9 +241,9 @@ fun FrameViewerCardTools(mediaFile: MediaFile?) {
                 )
             }
 
-            IconButton(onClick = {}) {
+            IconButton(onClick = { viewModelApp.switchVisibleMedia(mediaFile) }) {
                 Icon(
-                    imageVector = if (mediaFile.isHidden) Icons.Default.Visibility else Icons.Default.VisibilityOff,
+                    imageVector = if (isHidden) Icons.Default.Visibility else Icons.Default.VisibilityOff,
                     contentDescription = null
                 )
             }
