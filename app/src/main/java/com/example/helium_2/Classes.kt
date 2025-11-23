@@ -83,6 +83,6 @@ class MediaFile {
     }
 
     fun delete(): Boolean {
-        return false
+        return documentFile.delete()
     }
 }

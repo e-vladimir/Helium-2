@@ -46,7 +46,7 @@ class ViewModelApp : ViewModel() {
 
     val folderCounters = mutableStateMapOf<String, String>()
     val folderCurrent = mutableStateOf("")
-    var folderPaths = mutableListOf<Uri>()
+    val folderPaths = mutableListOf<Uri>()
     val folderProcessor = mutableStateOf<FolderProcessor?>(null)
     val folderProcessors = mutableMapOf<String, FolderProcessor>()
 
@@ -62,6 +62,8 @@ class ViewModelApp : ViewModel() {
     val mediaViewDetails = mutableStateOf(false)
     val mediaViewRotates = mutableStateMapOf<MediaFile, Float>()
     val mediaViewHiddens = mutableStateMapOf<MediaFile, Boolean>()
+    val dialogDeleteMediaFileVisible = mutableStateOf(false)
+
 
     suspend fun saveFolderPaths(context: Context) {
         context.dataStore.edit { preferences ->
@@ -70,8 +72,9 @@ class ViewModelApp : ViewModel() {
     }
 
     suspend fun loadFolderPaths(context: Context) {
-        folderPaths = context.dataStore.data.map { preferences -> preferences[KEY_FOLDERS] ?: "" }.first().split("\n").filter { it.isNotEmpty() }
-            .map { it.toUri() }.toMutableList()
+        folderPaths.clear()
+        folderPaths.addAll(context.dataStore.data.map { preferences -> preferences[KEY_FOLDERS] ?: "" }.first().split("\n").filter { it.isNotEmpty() }
+            .map { it.toUri() }.toMutableList())
 
         folderPaths.map { applyFolderPath(it) }
     }
@@ -95,15 +98,18 @@ class ViewModelApp : ViewModel() {
     }
 
     fun forgetFolderCurrent(context: Context) {
-        folderPaths = folderPaths.filterNot { folderPath -> uriToString(folderPath) == folderCurrent.value }.toMutableList()
+        try {
+            folderPaths.remove(folderCurrent.value.toUri())
 
-        viewModelScope.launch {
-            saveFolderPaths(context)
+        } finally {
+            viewModelScope.launch {
+                saveFolderPaths(context)
 
-            folderCounters.remove(folderCurrent.value)
-            folderProcessors.remove(folderCurrent.value)
+                folderCounters.remove(folderCurrent.value)
+                folderProcessors.remove(folderCurrent.value)
 
-            folderCurrent.value = ""
+                folderCurrent.value = ""
+            }
         }
     }
 
@@ -140,12 +146,12 @@ class ViewModelApp : ViewModel() {
         folderProcessor.value = folderProcessors[folderName]
 
         mediaState.value = STATES.PROCESSING
-        mediaFiles.clear()
 
         updateMediaGroups()
     }
 
     fun updateMediaGroups() {
+        mediaFiles.clear()
         mediaFiles.putAll(folderProcessor.value?.files?.map {
             it.fileTime to it
         }!!.toMap())
@@ -161,7 +167,17 @@ class ViewModelApp : ViewModel() {
         mediaViewRotates[mediaFile] = (mediaViewRotates[mediaFile] ?: 0.0f) + 90.0f
     }
 
-    fun switchVisibleMedia(mediaFile: MediaFile) {
+    fun switchVisibleMediaFile(mediaFile: MediaFile) {
         mediaViewHiddens[mediaFile] = mediaFile.switchVisible()
+    }
+
+    fun deleteMediaFile(mediaFile: MediaFile?): Boolean {
+        if (mediaFile == null) return false
+        if (!mediaFile.delete()) return false
+
+        folderProcessor.value?.files?.remove(mediaFile)
+        updateMediaGroups()
+
+        return true
     }
 }

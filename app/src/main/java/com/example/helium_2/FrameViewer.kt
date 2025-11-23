@@ -5,6 +5,7 @@ package com.example.helium_2
 import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
+import android.widget.Toast
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -31,17 +32,22 @@ import androidx.compose.material.icons.filled.Rotate90DegreesCw
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 
 import androidx.compose.material3.Card
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 
 import androidx.compose.ui.Alignment
@@ -72,14 +78,15 @@ fun shareMedia(context: Context, mediaFile: MediaFile) {
 
 @Composable
 fun FrameViewerCard() {
-    val mediaFiles = viewModelApp.mediaFiles
-    val mediaKeys = mediaFiles.keys.toList().sortedDescending()
+    val folderCurrent by viewModelApp.folderCurrent
     val mediaFile by viewModelApp.mediaFile
+    val mediaFiles = viewModelApp.mediaFiles
+    val mediaKeys by remember { derivedStateOf { viewModelApp.mediaFiles.keys.toList().sortedDescending() } }
+    var dialogDeleteMediaFileVisible by viewModelApp.dialogDeleteMediaFileVisible
 
     val pagerState = rememberPagerState(
-        initialPage = mediaKeys.indexOf(
-            mediaFile?.fileTime
-        ), pageCount = { mediaFiles.count() })
+        initialPage = mediaKeys.indexOf(mediaFile?.fileTime),
+        pageCount = { mediaFiles.count() })
 
     Surface(
         modifier = Modifier
@@ -87,6 +94,28 @@ fun FrameViewerCard() {
     ) {
         HorizontalPager(state = pagerState) { page ->
             val pageFile = mediaFiles[mediaKeys[page]]
+
+            if (dialogDeleteMediaFileVisible) {
+                AlertDialog(
+                    onDismissRequest = { dialogDeleteMediaFileVisible = false },
+                    title = { Text("Удаление медиа-файла") },
+                    text = { Text("${folderCurrent}\n${pageFile?.mediaTime}") },
+                    confirmButton = {
+                        Button(
+                            onClick = {
+                                viewModelApp.deleteMediaFile(pageFile)
+                                dialogDeleteMediaFileVisible = false
+                            }) {
+                            Text("Удалить")
+                        }
+                    },
+                    dismissButton = {
+                        OutlinedButton(
+                            onClick = { dialogDeleteMediaFileVisible = false }) {
+                            Text("Оставить")
+                        }
+                    })
+            }
 
             Column(
                 modifier = Modifier
@@ -180,7 +209,8 @@ fun FrameViewerCardMediaImage(mediaFile: MediaFile?) {
             model = mediaFile.uri,
             contentDescription = null,
             contentScale = ContentScale.Fit,
-        )
+
+            )
 
         if (isHidden) {
             Icon(
@@ -241,14 +271,14 @@ fun FrameViewerCardTools(mediaFile: MediaFile?) {
                 )
             }
 
-            IconButton(onClick = { viewModelApp.switchVisibleMedia(mediaFile) }) {
+            IconButton(onClick = { viewModelApp.switchVisibleMediaFile(mediaFile) }) {
                 Icon(
                     imageVector = if (isHidden) Icons.Default.Visibility else Icons.Default.VisibilityOff,
                     contentDescription = null
                 )
             }
 
-            IconButton(onClick = {}) {
+            IconButton(onClick = { viewModelApp.dialogDeleteMediaFileVisible.value = true }) {
                 Icon(
                     imageVector = Icons.Default.DeleteOutline,
                     contentDescription = null

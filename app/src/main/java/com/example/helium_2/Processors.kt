@@ -9,16 +9,18 @@ import androidx.documentfile.provider.DocumentFile
 
 
 class FolderProcessor(val folderPath: Uri) {
-    var files = listOf<MediaFile>()
+    val files = mutableListOf<MediaFile>()
 
     fun readFiles(context: Context): Int? {
+        files.clear()
         try {
-            files = DocumentFile
+            files.addAll(
+                DocumentFile
                 .fromTreeUri(context, folderPath)
                 ?.listFiles()!!
                 .map { MediaFile(it) }
                 .filter { it.isImage }
-                .toList()
+                .toList())
 
             return countFiles()
         } catch (_: Exception) {
