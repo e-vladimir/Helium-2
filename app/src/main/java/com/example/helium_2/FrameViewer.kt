@@ -5,7 +5,6 @@ package com.example.helium_2
 import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
-import android.widget.Toast
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -61,6 +60,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
 
 import coil.compose.AsyncImage
 
@@ -77,12 +77,14 @@ fun shareMedia(context: Context, mediaFile: MediaFile) {
 }
 
 @Composable
-fun FrameViewerCard() {
+fun FrameViewerCard(navController: NavController) {
     val folderCurrent by viewModelApp.folderCurrent
     val mediaFile by viewModelApp.mediaFile
     val mediaFiles = viewModelApp.mediaFiles
     val mediaKeys by remember { derivedStateOf { viewModelApp.mediaFiles.keys.toList().sortedDescending() } }
     var dialogDeleteMediaFileVisible by viewModelApp.dialogDeleteMediaFileVisible
+
+    if (mediaFiles.isEmpty()) navController.navigate(SCREENS.FOLDER.screen)
 
     val pagerState = rememberPagerState(
         initialPage = mediaKeys.indexOf(mediaFile?.fileTime),

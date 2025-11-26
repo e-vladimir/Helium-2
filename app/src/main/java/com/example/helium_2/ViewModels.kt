@@ -175,7 +175,7 @@ class ViewModelApp : ViewModel() {
         if (mediaFile == null) return false
         if (!mediaFile.delete()) return false
 
-        folderProcessor.value?.files?.remove(mediaFile)
+        folderProcessor.value?.forgetFile(mediaFile)
         updateMediaGroups()
 
         return true

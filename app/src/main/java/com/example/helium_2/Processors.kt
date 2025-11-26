@@ -31,4 +31,8 @@ class FolderProcessor(val folderPath: Uri) {
 
     fun countFiles(): Int = files.count()
 
+    fun forgetFile(mediaFile: MediaFile) {
+        files.remove(mediaFile)
+    }
+
 }
