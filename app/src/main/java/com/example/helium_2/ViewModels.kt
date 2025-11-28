@@ -137,6 +137,12 @@ class ViewModelApp : ViewModel() {
         appStarted.value = true
     }
 
+    fun updateFolderCounters() {
+        folderCounters.keys.map { folderName ->
+            folderCounters[folderName] = folderProcessors[folderName]?.files?.size.toString()
+        }
+    }
+
     fun switchFolderCurrentByName(folderName: String) {
         if (folderName == folderCurrent.value) return
 
@@ -176,7 +182,9 @@ class ViewModelApp : ViewModel() {
         if (!mediaFile.delete()) return false
 
         folderProcessor.value?.forgetFile(mediaFile)
+
         updateMediaGroups()
+        updateFolderCounters()
 
         return true
     }
