@@ -130,6 +130,8 @@ fun MediaItem(modifier: Modifier, mediaFile: MediaFile, navController: NavContro
             .clip(RoundedCornerShape(4.dp))
             .clickable {
                 viewModelApp.mediaFile.value = mediaFile
-                navController.navigate(SCREENS.MEDIA.screen)
+                navController.navigate(SCREENS.MEDIA.screen) {
+                    launchSingleTop = true
+                }
             })
 }

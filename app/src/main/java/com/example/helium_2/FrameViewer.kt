@@ -84,7 +84,10 @@ fun FrameViewerCard(navController: NavController) {
     val mediaKeys by remember { derivedStateOf { viewModelApp.mediaFiles.keys.toList().sortedDescending() } }
     var dialogDeleteMediaFileVisible by viewModelApp.dialogDeleteMediaFileVisible
 
-    if (mediaFiles.isEmpty()) navController.navigate(SCREENS.FOLDER.screen)
+    if (mediaFiles.isEmpty()) navController.navigate(SCREENS.FOLDER.screen) {
+        popUpTo(0)
+        launchSingleTop = true
+    }
 
     val pagerState = rememberPagerState(
         initialPage = mediaKeys.indexOf(mediaFile?.fileTime),
