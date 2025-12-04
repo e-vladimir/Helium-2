@@ -144,9 +144,9 @@ class ViewModelApp : ViewModel() {
     }
 
     fun switchFolderCurrentByName(folderName: String) {
-        if (folderName == folderCurrent.value) return
-
         leftPanelVisible.value = false
+
+        if (folderName == folderCurrent.value) return
 
         folderCurrent.value = folderName
         folderProcessor.value = folderProcessors[folderName]
