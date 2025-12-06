@@ -13,6 +13,7 @@ class FolderProcessor(val folderPath: Uri) {
 
     fun readFiles(context: Context): Int? {
         files.clear()
+
         try {
             files.addAll(
                 DocumentFile

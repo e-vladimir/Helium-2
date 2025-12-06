@@ -138,7 +138,7 @@ fun FrameViewerCard(navController: NavController) {
 @Composable
 fun FrameViewerCardInfo(mediaFile: MediaFile?) {
     val folderCurrent by viewModelApp.folderCurrent
-    var showDetails by viewModelApp.mediaViewDetails
+    var showDetails by viewModelApp.mediaViewVisibleDetails
     val isLandscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
 
     if (showDetails and !isLandscape) {
@@ -172,7 +172,7 @@ fun FrameViewerCardInfo(mediaFile: MediaFile?) {
 
 @Composable
 fun FrameViewerCardMedia(mediaFile: MediaFile?, modifier: Modifier) {
-    var showDetails by viewModelApp.mediaViewDetails
+    var showDetails by viewModelApp.mediaViewVisibleDetails
     val isLandscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
 
     if (showDetails and !isLandscape) {
@@ -196,10 +196,12 @@ fun FrameViewerCardMedia(mediaFile: MediaFile?, modifier: Modifier) {
 fun FrameViewerCardMediaImage(mediaFile: MediaFile?) {
     if (mediaFile == null) return
 
-    var showDetails by viewModelApp.mediaViewDetails
+    var showDetails by viewModelApp.mediaViewVisibleDetails
     val mediaViewRotates = viewModelApp.mediaViewRotates
-    val mediaViewHiddens = viewModelApp.mediaViewHiddens
-    val isHidden = mediaViewHiddens[mediaFile] ?: mediaFile.isHidden
+    val isHidden = mediaFile.isHidden
+
+    val refreshHook by viewModelApp.refreshHook
+    if (refreshHook < 0) return
 
     Box(
         modifier = Modifier.fillMaxSize(),
@@ -234,7 +236,7 @@ fun FrameViewerCardMediaImage(mediaFile: MediaFile?) {
 
 @Composable
 fun FrameViewerCardTools(mediaFile: MediaFile?) {
-    var showDetails by viewModelApp.mediaViewDetails
+    var showDetails by viewModelApp.mediaViewVisibleDetails
     val isLandscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
     val context = LocalContext.current
 
@@ -242,8 +244,10 @@ fun FrameViewerCardTools(mediaFile: MediaFile?) {
     if (!showDetails) return
     if (isLandscape) return
 
-    val mediaViewHiddens = viewModelApp.mediaViewHiddens
-    val isHidden = mediaViewHiddens[mediaFile] ?: mediaFile.isHidden
+    val isHidden = mediaFile.isHidden
+
+    val refreshHook by viewModelApp.refreshHook
+    if (refreshHook < 0) return
 
     Card(
         modifier = Modifier
@@ -278,7 +282,7 @@ fun FrameViewerCardTools(mediaFile: MediaFile?) {
 
             IconButton(onClick = { viewModelApp.switchVisibleMediaFile(mediaFile) }) {
                 Icon(
-                    imageVector = if (isHidden) Icons.Default.Visibility else Icons.Default.VisibilityOff,
+                    imageVector = if (isHidden) Icons.Default.VisibilityOff else Icons.Default.Visibility,
                     contentDescription = null
                 )
             }

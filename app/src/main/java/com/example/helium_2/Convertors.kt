@@ -37,3 +37,6 @@ fun Long.toLocalDateTime(): LocalDateTime {
         Instant.ofEpochMilli(this), ZoneId.systemDefault()
     )
 }
+
+
+fun Boolean.toInt() : Int = if (this) 1 else 0

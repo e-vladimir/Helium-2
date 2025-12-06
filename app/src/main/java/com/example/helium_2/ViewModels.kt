@@ -5,6 +5,7 @@ package com.example.helium_2
 import android.content.Context
 
 import android.net.Uri
+import androidx.compose.runtime.mutableIntStateOf
 
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
@@ -59,10 +60,11 @@ class ViewModelApp : ViewModel() {
 
     val menuFolderVisible = mutableStateOf(false)
 
-    val mediaViewDetails = mutableStateOf(false)
+    val mediaViewVisibleDetails = mutableStateOf(false)
     val mediaViewRotates = mutableStateMapOf<MediaFile, Float>()
-    val mediaViewHiddens = mutableStateMapOf<MediaFile, Boolean>()
     val dialogDeleteMediaFileVisible = mutableStateOf(false)
+
+    val refreshHook = mutableIntStateOf(0)
 
 
     suspend fun saveFolderPaths(context: Context) {
@@ -174,7 +176,8 @@ class ViewModelApp : ViewModel() {
     }
 
     fun switchVisibleMediaFile(mediaFile: MediaFile) {
-        mediaViewHiddens[mediaFile] = mediaFile.switchVisible()
+        mediaFile.switchVisible().toInt()
+        refreshHook.intValue += 1
     }
 
     fun deleteMediaFile(mediaFile: MediaFile?): Boolean {
