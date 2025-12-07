@@ -34,6 +34,7 @@ import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Folder
 import androidx.compose.material.icons.outlined.HideImage
 import androidx.compose.material.icons.outlined.Visibility
+import androidx.compose.material.icons.outlined.VisibilityOff
 
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -165,9 +166,7 @@ fun FrameAppIndicatorRefresh(modifier: Modifier = Modifier) {
                     color = MaterialTheme.colorScheme.surfaceContainerLow, shape = CircleShape
                 )
                 .border(
-                    width = 1.dp,
-                    color = MaterialTheme.colorScheme.surfaceContainerHigh,
-                    shape = CircleShape
+                    width = 1.dp, color = MaterialTheme.colorScheme.surfaceContainerHigh, shape = CircleShape
                 ), contentAlignment = Alignment.Center
 
         ) {
@@ -219,6 +218,7 @@ fun MenuFolder() {
     val context = LocalContext.current
     var dialogForgetFolderVisible by viewModelApp.dialogForgetFolderVisible
     var menuFolderVisible by viewModelApp.menuFolderVisible
+    var mediaViewShowHiddenMedia by viewModelApp.mediaViewShowHiddenMedia
 
     if (dialogForgetFolderVisible) {
         AlertDialog(
@@ -246,9 +246,11 @@ fun MenuFolder() {
         expanded = menuFolderVisible, onDismissRequest = { menuFolderVisible = false }) {
         DropdownMenuItem(onClick = {
             menuFolderVisible = false
-        }, text = { Text("Показать скрытое") }, leadingIcon = {
+            mediaViewShowHiddenMedia = !mediaViewShowHiddenMedia
+            viewModelApp.updateMediaGroups()
+        }, text = { Text(if (mediaViewShowHiddenMedia) "Убрать скрытое" else "Показать скрытое") }, leadingIcon = {
             Icon(
-                imageVector = Icons.Outlined.Visibility, contentDescription = null
+                imageVector = if (mediaViewShowHiddenMedia) Icons.Outlined.VisibilityOff else Icons.Outlined.Visibility, contentDescription = null
             )
         })
 
@@ -299,9 +301,7 @@ fun FoldersHeader() {
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = "Версия от $VERSION",
-                fontSize = 11.sp,
-                color = MaterialTheme.colorScheme.outline
+                text = "Версия от $VERSION", fontSize = 11.sp, color = MaterialTheme.colorScheme.outline
             )
         }
 
@@ -320,8 +320,7 @@ fun ButtonAddFolder() {
         uri?.let {
             try {
                 context.contentResolver.takePersistableUriPermission(
-                    it,
-                    Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+                    it, Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
                 )
 
                 coroutineScope.launch {
@@ -342,9 +341,7 @@ fun ButtonAddFolder() {
         )
     }, selected = false, icon = {
         Icon(
-            imageVector = Icons.Outlined.Add,
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.primary
+            imageVector = Icons.Outlined.Add, contentDescription = null, tint = MaterialTheme.colorScheme.primary
         )
     }, badge = { }, onClick = { directoryPickerLauncher.launch(null) })
 }
@@ -358,8 +355,7 @@ fun ButtonFolder(folder: String, count: String) {
 
     NavigationDrawerItem(label = { Text(folder) }, selected = selected, icon = {
         Icon(
-            imageVector = if (selected) Icons.Filled.Folder else Icons.Outlined.Folder,
-            contentDescription = null
+            imageVector = if (selected) Icons.Filled.Folder else Icons.Outlined.Folder, contentDescription = null
         )
     }, badge = {
         if (count.isDigitsOnly()) {

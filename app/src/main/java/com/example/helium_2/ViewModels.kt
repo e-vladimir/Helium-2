@@ -62,9 +62,10 @@ class ViewModelApp : ViewModel() {
 
     val mediaViewVisibleDetails = mutableStateOf(false)
     val mediaViewRotates = mutableStateMapOf<MediaFile, Float>()
-    val dialogDeleteMediaFileVisible = mutableStateOf(false)
+    val mediaViewShowHiddenMedia = mutableStateOf(false)
 
     val refreshHook = mutableIntStateOf(0)
+    val dialogDeleteMediaFileVisible = mutableStateOf(false)
 
 
     suspend fun saveFolderPaths(context: Context) {
@@ -163,6 +164,10 @@ class ViewModelApp : ViewModel() {
             it.fileTime to it
         }!!.toMap())
 
+        if (!mediaViewShowHiddenMedia.value) {
+            mediaFiles.keys.removeIf { key -> mediaFiles[key]?.isHidden == true }
+        }
+
         mediaGroups.clear()
         mediaGroups.putAll(mediaFiles.keys.map { it.toLocalDate() }
             .map { mediaGroup -> mediaGroup to mediaFiles.filter { it.key.toLocalDate() == mediaGroup } })
@@ -176,6 +181,7 @@ class ViewModelApp : ViewModel() {
 
     fun switchVisibleMediaFile(mediaFile: MediaFile) {
         mediaFile.switchVisible().toInt()
+        updateMediaGroups()
         refreshHook.intValue += 1
     }
 
