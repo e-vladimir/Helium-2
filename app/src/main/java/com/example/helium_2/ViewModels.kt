@@ -121,10 +121,9 @@ class ViewModelApp : ViewModel() {
 
         withContext(Dispatchers.IO) {
             folderCounters[folderCurrent.value] = (folderProcessors[folderCurrent.value]?.readFiles(context) ?: 0).toString()
-            updateMediaGroups()
         }
 
-        mediaState.value = STATES.WAITING
+        updateMediaGroups()
     }
 
     suspend fun readFolderCounters(context: Context) {
