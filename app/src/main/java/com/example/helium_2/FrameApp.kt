@@ -81,7 +81,7 @@ import androidx.navigation.NavController
 import kotlinx.coroutines.launch
 
 
-const val VERSION = "07 дек 2025"
+const val VERSION = "11 дек 2025"
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -352,6 +352,7 @@ fun ButtonFolder(folder: String, count: String) {
     var currentFolder by viewModelApp.folderCurrent
     val coroutineScope = rememberCoroutineScope()
     val selected = currentFolder == folder
+    val context = LocalContext.current
 
     NavigationDrawerItem(label = { Text(folder) }, selected = selected, icon = {
         Icon(
@@ -370,6 +371,7 @@ fun ButtonFolder(folder: String, count: String) {
     }, onClick = {
         coroutineScope.launch {
             viewModelApp.switchFolderCurrentByName(folder)
+            viewModelApp.readMediaSizes(context)
         }
     })
 }

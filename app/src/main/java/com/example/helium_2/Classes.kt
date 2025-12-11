@@ -2,7 +2,10 @@
 
 package com.example.helium_2
 
+import android.content.Context
+import android.graphics.BitmapFactory
 import android.net.Uri
+import androidx.compose.ui.platform.LocalContext
 import androidx.documentfile.provider.DocumentFile
 import java.time.LocalDateTime
 
@@ -22,6 +25,8 @@ class MediaFile {
     private lateinit var _uri: Uri
     private var _isHidden: Boolean = false
     private var _isImage: Boolean = false
+
+    private var _size: Pair<Int, Int> = Pair(0, 0)
 
     val documentFile: DocumentFile
         get() = _documentFile
@@ -49,6 +54,10 @@ class MediaFile {
 
     val mediaTime: String
         get() = _mediaTime
+
+    val size: Pair<Int, Int>
+        get() = _size
+
 
     constructor(documentFile: DocumentFile) {
         updateMediaFile(documentFile)
@@ -84,5 +93,19 @@ class MediaFile {
 
     fun delete(): Boolean {
         return documentFile.delete()
+    }
+
+    fun readSize(context: Context) {
+        _size = runCatching {
+            val options = BitmapFactory.Options().apply {
+                inJustDecodeBounds = true
+            }
+            context.contentResolver.openInputStream(uri)?.use { stream ->
+                BitmapFactory.decodeStream(stream, null, options)
+            }
+            if (options.outWidth > 0 && options.outHeight > 0) {
+                Pair(options.outWidth, options.outHeight)
+            } else null
+        }.getOrNull() ?: Pair(0, 0)
     }
 }

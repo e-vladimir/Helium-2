@@ -62,6 +62,8 @@ class ViewModelApp : ViewModel() {
 
     val mediaViewVisibleDetails = mutableStateOf(false)
     val mediaViewRotates = mutableStateMapOf<MediaFile, Float>()
+    val mediaViewScales = mutableStateMapOf<MediaFile, Float>()
+    val mediaViewShifts = mutableStateMapOf<MediaFile, Pair<Int, Int>>()
     val mediaViewShowHiddenMedia = mutableStateOf(false)
 
     val refreshHook = mutableIntStateOf(0)
@@ -137,6 +139,12 @@ class ViewModelApp : ViewModel() {
         }
 
         appStarted.value = true
+    }
+
+    suspend fun readMediaSizes(context: Context) {
+        withContext(Dispatchers.IO) {
+            folderProcessor.value?.files?.forEach { it.readSize(context) }
+        }
     }
 
     fun updateFolderCounters() {
