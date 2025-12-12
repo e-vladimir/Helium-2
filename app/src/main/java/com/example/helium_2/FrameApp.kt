@@ -81,7 +81,7 @@ import androidx.navigation.NavController
 import kotlinx.coroutines.launch
 
 
-const val VERSION = "11 дек 2025"
+const val VERSION = "12 дек 2025"
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -371,7 +371,6 @@ fun ButtonFolder(folder: String, count: String) {
     }, onClick = {
         coroutineScope.launch {
             viewModelApp.switchFolderCurrentByName(folder)
-            viewModelApp.readMediaSizes(context)
         }
     })
 }

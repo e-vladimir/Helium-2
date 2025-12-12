@@ -60,10 +60,8 @@ class ViewModelApp : ViewModel() {
 
     val menuFolderVisible = mutableStateOf(false)
 
-    val mediaViewVisibleDetails = mutableStateOf(false)
+    val mediaViewVisibleDetails = mutableStateOf(true)
     val mediaViewRotates = mutableStateMapOf<MediaFile, Float>()
-    val mediaViewScales = mutableStateMapOf<MediaFile, Float>()
-    val mediaViewShifts = mutableStateMapOf<MediaFile, Pair<Int, Int>>()
     val mediaViewShowHiddenMedia = mutableStateOf(false)
 
     val refreshHook = mutableIntStateOf(0)
