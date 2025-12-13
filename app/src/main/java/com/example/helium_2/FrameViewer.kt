@@ -7,7 +7,7 @@ import android.content.Intent
 import android.content.res.Configuration
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -65,6 +65,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+
 import androidx.navigation.NavController
 
 import coil.compose.AsyncImage
@@ -107,8 +108,7 @@ fun FrameViewerCard(navController: NavController) {
         modifier = Modifier.fillMaxSize()
     ) {
         HorizontalPager(
-            state = pagerState,
-            userScrollEnabled = showDetails || isLandscape
+            state = pagerState, userScrollEnabled = showDetails || isLandscape
         ) { page ->
             val pageFile = mediaFiles[mediaKeys[page]]
 
@@ -193,11 +193,7 @@ fun FrameViewerCardMedia(mediaFile: MediaFile?, modifier: Modifier) {
             FrameViewerCardMediaImage(mediaFile = mediaFile)
         }
     } else {
-        Box(
-            modifier = modifier.background(color = Color.Black)
-        ) {
-            FrameViewerCardMediaImage(mediaFile = mediaFile)
-        }
+        FrameViewerCardMediaImage(mediaFile = mediaFile)
     }
 }
 
@@ -208,50 +204,66 @@ fun FrameViewerCardMediaImage(mediaFile: MediaFile?) {
     val refreshHook by viewModelApp.refreshHook
     if (refreshHook < 0) return
 
+    var offset by remember { mutableStateOf(Offset.Zero) }
+    var scale by remember { mutableFloatStateOf(1.00f) }
+    var showDetails by viewModelApp.mediaViewVisibleDetails
+
     val isHidden = mediaFile.isHidden
     val isLandscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
     val rotation = viewModelApp.mediaViewRotates[mediaFile] ?: 0.00f
-    var offset by remember { mutableStateOf(Offset.Zero) }
-    var scale by remember { mutableFloatStateOf(1f) }
-    var showDetails by viewModelApp.mediaViewVisibleDetails
+    var shiftX = 0f
+    var shiftY = 0f
 
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
+    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center
-        ) {
-            Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .pointerInput(showDetails, isLandscape) {
+                    if (!showDetails && !isLandscape) {
+                        detectTransformGestures(
+                            onGesture = { _, gesturePan, gestureZoom, _ ->
+                                scale = (scale * gestureZoom).coerceIn(1.00f, 3.00f)
+                                shiftX = (mediaFile.size.first * scale - mediaFile.size.first) / 2
+                                shiftY = (mediaFile.size.second * scale - mediaFile.size.second) / 2
+
+                                offset += gesturePan
+                                offset = Offset(
+                                    offset.x.coerceIn(-shiftX, shiftX),
+                                    offset.y.coerceIn(-shiftY, shiftY)
+                                )
+
+                            })
+                    }
+                }
+                .pointerInput(showDetails, isLandscape) {
+                    detectTapGestures(
+                        onTap = {
+                            showDetails = !showDetails
+                        },
+                        onDoubleTap = {
+                            scale = 1.00f
+                            viewModelApp.rotateMediaToCw(mediaFile, 0f)
+                            offset = Offset.Zero
+                        },
+                        onLongPress = {
+                            viewModelApp.rotateMediaToCw(mediaFile)
+                        })
+                }) {
+            AsyncImage(
                 modifier = Modifier
                     .fillMaxSize()
-                    .pointerInput(Unit) {
-                        if (!showDetails && !isLandscape) {
-                            detectTransformGestures { _, gesturePan, gestureZoom, _ ->
-                                offset += gesturePan
-                                scale = (scale * gestureZoom).coerceIn(0.5f, 5f)
-                            }
-                        }
-                    }
-            ) {
-                AsyncImage(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(color = Color.Black)
-                        .clickable { if (!isLandscape) showDetails = !showDetails }
-                        .graphicsLayer {
-                            scaleX = scale
-                            scaleY = scale
-                            translationX = offset.x
-                            translationY = offset.y
-                            rotationZ = rotation
-                        },
-                    model = mediaFile.uri,
-                    contentDescription = null,
-                    contentScale = ContentScale.Fit,
-                )
-            }
+                    .background(color = Color.Black)
+                    .graphicsLayer {
+                        scaleX = scale
+                        scaleY = scale
+                        translationX = offset.x
+                        translationY = offset.y
+                        rotationZ = rotation
+                    },
+                model = mediaFile.uri,
+                contentDescription = null,
+                contentScale = ContentScale.Fit,
+            )
         }
 
         if (isHidden) {
@@ -313,8 +325,7 @@ fun FrameViewerCardTools(mediaFile: MediaFile?) {
 
             IconButton(onClick = { viewModelApp.switchVisibleMediaFile(mediaFile) }) {
                 Icon(
-                    imageVector = if (isHidden) Icons.Default.VisibilityOff else Icons.Default.Visibility,
-                    contentDescription = null
+                    imageVector = if (isHidden) Icons.Default.VisibilityOff else Icons.Default.Visibility, contentDescription = null
                 )
             }
 

@@ -181,8 +181,8 @@ class ViewModelApp : ViewModel() {
         mediaState.value = STATES.WAITING
     }
 
-    fun rotateMediaToCw(mediaFile: MediaFile) {
-        mediaViewRotates[mediaFile] = (mediaViewRotates[mediaFile] ?: 0.0f) + 90.0f
+    fun rotateMediaToCw(mediaFile: MediaFile, angle: Float? = null) {
+        mediaViewRotates[mediaFile] = angle ?: (mediaViewRotates[mediaFile] ?: 0.0f) + 90.0f
     }
 
     fun switchVisibleMediaFile(mediaFile: MediaFile) {

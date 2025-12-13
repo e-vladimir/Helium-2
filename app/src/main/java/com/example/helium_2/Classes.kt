@@ -58,6 +58,9 @@ class MediaFile {
     val size: Pair<Int, Int>
         get() = _size
 
+    val ratio: Float
+        get() = (_size.toList().min() / _size.toList().max()).toFloat()
+
 
     constructor(documentFile: DocumentFile) {
         updateMediaFile(documentFile)

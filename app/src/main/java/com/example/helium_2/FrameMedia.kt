@@ -26,6 +26,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 
 import androidx.navigation.NavController
@@ -120,6 +121,8 @@ fun MediaGrid(mediaFiles: Map<LocalDateTime, MediaFile>, navController: NavContr
 
 @Composable
 fun MediaItem(modifier: Modifier, mediaFile: MediaFile, navController: NavController) {
+    val context = LocalContext.current
+
     AsyncImage(
         model = mediaFile.uri,
         contentDescription = null,
@@ -129,6 +132,8 @@ fun MediaItem(modifier: Modifier, mediaFile: MediaFile, navController: NavContro
             .alpha(if (mediaFile.isHidden) 0.20f else 1.00f)
             .clip(RoundedCornerShape(4.dp))
             .clickable {
+                mediaFile.readSize(context)
+
                 viewModelApp.mediaFile.value = mediaFile
                 navController.navigate(SCREENS.MEDIA.screen) {
                     launchSingleTop = true

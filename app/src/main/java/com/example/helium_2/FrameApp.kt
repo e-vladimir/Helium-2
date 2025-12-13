@@ -81,7 +81,7 @@ import androidx.navigation.NavController
 import kotlinx.coroutines.launch
 
 
-const val VERSION = "12 дек 2025"
+const val VERSION = "13 дек 2025"
 
 
 @OptIn(ExperimentalMaterial3Api::class)
