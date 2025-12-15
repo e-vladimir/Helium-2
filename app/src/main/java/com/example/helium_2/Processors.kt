@@ -35,5 +35,4 @@ class FolderProcessor(val folderPath: Uri) {
     fun forgetFile(mediaFile: MediaFile) {
         files.remove(mediaFile)
     }
-
 }

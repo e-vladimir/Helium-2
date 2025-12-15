@@ -211,8 +211,6 @@ fun FrameViewerCardMediaImage(mediaFile: MediaFile?) {
     val isHidden = mediaFile.isHidden
     val isLandscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
     val rotation = viewModelApp.mediaViewRotates[mediaFile] ?: 0.00f
-    var shiftX = 0f
-    var shiftY = 0f
 
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         Box(
@@ -223,15 +221,7 @@ fun FrameViewerCardMediaImage(mediaFile: MediaFile?) {
                         detectTransformGestures(
                             onGesture = { _, gesturePan, gestureZoom, _ ->
                                 scale = (scale * gestureZoom).coerceIn(1.00f, 3.00f)
-                                shiftX = (mediaFile.size.first * scale - mediaFile.size.first) / 2
-                                shiftY = (mediaFile.size.second * scale - mediaFile.size.second) / 2
-
                                 offset += gesturePan
-                                offset = Offset(
-                                    offset.x.coerceIn(-shiftX, shiftX),
-                                    offset.y.coerceIn(-shiftY, shiftY)
-                                )
-
                             })
                     }
                 }
@@ -242,8 +232,9 @@ fun FrameViewerCardMediaImage(mediaFile: MediaFile?) {
                         },
                         onDoubleTap = {
                             scale = 1.00f
-                            viewModelApp.rotateMediaToCw(mediaFile, 0f)
                             offset = Offset.Zero
+
+                            viewModelApp.rotateMediaToCw(mediaFile, 0f)
                         },
                         onLongPress = {
                             viewModelApp.rotateMediaToCw(mediaFile)

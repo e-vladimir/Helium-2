@@ -21,6 +21,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberCoroutineScope
 
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -32,6 +33,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 
 import coil.compose.AsyncImage
+import kotlinx.coroutines.launch
 
 import java.time.LocalDateTime
 
@@ -53,7 +55,8 @@ fun FrameMedia(modifier: Modifier = Modifier, navController: NavController) {
 
             item(key = mediaGroup.toFormattedString()) {
                 MediaGroup(
-                    mediaFiles = mediaGroups[mediaGroup] ?: emptyMap(), navController = navController
+                    mediaFiles = mediaGroups[mediaGroup] ?: emptyMap(),
+                    navController = navController
                 )
 
                 Spacer(modifier = Modifier.height(8.dp))
@@ -122,6 +125,7 @@ fun MediaGrid(mediaFiles: Map<LocalDateTime, MediaFile>, navController: NavContr
 @Composable
 fun MediaItem(modifier: Modifier, mediaFile: MediaFile, navController: NavController) {
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
 
     AsyncImage(
         model = mediaFile.uri,
@@ -132,11 +136,10 @@ fun MediaItem(modifier: Modifier, mediaFile: MediaFile, navController: NavContro
             .alpha(if (mediaFile.isHidden) 0.20f else 1.00f)
             .clip(RoundedCornerShape(4.dp))
             .clickable {
-                mediaFile.readSize(context)
-
                 viewModelApp.mediaFile.value = mediaFile
                 navController.navigate(SCREENS.MEDIA.screen) {
                     launchSingleTop = true
                 }
+
             })
 }

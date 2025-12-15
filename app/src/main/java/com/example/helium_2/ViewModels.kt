@@ -139,12 +139,6 @@ class ViewModelApp : ViewModel() {
         appStarted.value = true
     }
 
-    suspend fun readMediaSizes(context: Context) {
-        withContext(Dispatchers.IO) {
-            folderProcessor.value?.files?.forEach { it.readSize(context) }
-        }
-    }
-
     fun updateFolderCounters() {
         folderCounters.keys.map { folderName ->
             folderCounters[folderName] = folderProcessors[folderName]?.files?.size.toString()
@@ -182,7 +176,7 @@ class ViewModelApp : ViewModel() {
     }
 
     fun rotateMediaToCw(mediaFile: MediaFile, angle: Float? = null) {
-        mediaViewRotates[mediaFile] = angle ?: (mediaViewRotates[mediaFile] ?: 0.0f) + 90.0f
+        mediaViewRotates[mediaFile] = (angle ?: (mediaViewRotates[mediaFile] ?: 0.0f) + 90.0f) % 360f
     }
 
     fun switchVisibleMediaFile(mediaFile: MediaFile) {
