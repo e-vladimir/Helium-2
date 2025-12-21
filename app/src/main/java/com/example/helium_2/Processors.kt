@@ -1,4 +1,4 @@
-// ОБЪЕКТЫ
+/* Модели обработки */
 
 package com.example.helium_2
 

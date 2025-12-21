@@ -1,4 +1,4 @@
-// ПРОСМОТР МЕДИА
+/* Форма просмотра медиа */
 
 package com.example.helium_2
 
@@ -32,6 +32,7 @@ import androidx.compose.material.icons.filled.Rotate90DegreesCw
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
+
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 
@@ -47,6 +48,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -60,6 +62,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -84,9 +87,10 @@ fun shareMedia(context: Context, mediaFile: MediaFile) {
 
 @Composable
 fun FrameViewerCard(navController: NavController) {
+    val context = LocalContext.current
     val folderCurrent by viewModelApp.folderCurrent
     val isLandscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
-    val mediaFile by viewModelApp.mediaFile
+    val mediaFile by viewModelApp.mediaFileSelected
     val mediaFiles = viewModelApp.mediaFiles
     val mediaKeys by remember {
         derivedStateOf {
@@ -138,6 +142,8 @@ fun FrameViewerCard(navController: NavController) {
                     .fillMaxSize()
                     .windowInsetsPadding(WindowInsets.safeDrawing)
             ) {
+                pageFile?.readSize(context, true)
+
                 FrameViewerCardInfo(mediaFile = pageFile)
                 FrameViewerCardMedia(mediaFile = pageFile, modifier = Modifier.weight(1.0f))
                 FrameViewerCardTools(mediaFile = pageFile)
@@ -171,7 +177,7 @@ fun FrameViewerCardInfo(mediaFile: MediaFile?) {
 
                     Text(
                         modifier = Modifier.fillMaxWidth(),
-                        text = mediaFile.mediaTime,
+                        text = mediaFile.size.toString(),
                         color = MaterialTheme.colorScheme.onSurface,
                         textAlign = TextAlign.Center
                     )
@@ -210,51 +216,55 @@ fun FrameViewerCardMediaImage(mediaFile: MediaFile?) {
 
     val isHidden = mediaFile.isHidden
     val isLandscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
-    val rotation = viewModelApp.mediaViewRotates[mediaFile] ?: 0.00f
+
+    var frameSize by remember { mutableStateOf(Pair(0, 0)) }
 
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        Box(
-            modifier = Modifier
+        key(mediaFile.angle) {
+            Box(modifier = Modifier
                 .fillMaxSize()
+                .onSizeChanged { frameSize = Pair(it.width, it.height) }
                 .pointerInput(showDetails, isLandscape) {
                     if (!showDetails && !isLandscape) {
                         detectTransformGestures(
                             onGesture = { _, gesturePan, gestureZoom, _ ->
-                                scale = (scale * gestureZoom).coerceIn(1.00f, 3.00f)
+                                val sizes = mediaFile.size.toList().map { it.toFloat() }
+
+                                scale = (scale * gestureZoom).coerceIn(
+                                    if (mediaFile.isRotated) (sizes.min() / sizes.max()) else 1.00f, 3.00f
+                                )
                                 offset += gesturePan
                             })
                     }
                 }
                 .pointerInput(showDetails, isLandscape) {
-                    detectTapGestures(
-                        onTap = {
-                            showDetails = !showDetails
-                        },
-                        onDoubleTap = {
-                            scale = 1.00f
-                            offset = Offset.Zero
+                    detectTapGestures(onTap = {
+                        showDetails = !showDetails
+                    }, onDoubleTap = {
+                        scale = 1.000f
+                        offset = Offset.Zero
 
-                            viewModelApp.rotateMediaToCw(mediaFile, 0f)
-                        },
-                        onLongPress = {
-                            viewModelApp.rotateMediaToCw(mediaFile)
-                        })
+                        viewModelApp.rotateMediaToCw(mediaFile, 0f)
+                    }, onLongPress = {
+                        viewModelApp.rotateMediaToCw(mediaFile)
+                    })
                 }) {
-            AsyncImage(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(color = Color.Black)
-                    .graphicsLayer {
-                        scaleX = scale
-                        scaleY = scale
-                        translationX = offset.x
-                        translationY = offset.y
-                        rotationZ = rotation
-                    },
-                model = mediaFile.uri,
-                contentDescription = null,
-                contentScale = ContentScale.Fit,
-            )
+                AsyncImage(
+                    modifier = Modifier
+                        .graphicsLayer {
+                            scaleX = scale
+                            scaleY = scale
+                            translationX = offset.x
+                            translationY = offset.y
+                            rotationZ = mediaFile.angle
+                        }
+                        .align(Alignment.Center)
+                        .background(color = Color.Black),
+                    model = mediaFile.uri,
+                    contentDescription = null,
+                    contentScale = ContentScale.Fit,
+                )
+            }
         }
 
         if (isHidden) {

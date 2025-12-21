@@ -1,12 +1,12 @@
-// VIEW-МОДЕЛИ
+/* Модели View */
 
 package com.example.helium_2
 
 import android.content.Context
 
 import android.net.Uri
-import androidx.compose.runtime.mutableIntStateOf
 
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 
@@ -18,6 +18,11 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 
+import java.time.LocalDate
+import java.time.LocalDateTime
+
+import kotlin.collections.set
+
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -25,11 +30,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-
-import java.time.LocalDate
-import java.time.LocalDateTime
-
-import kotlin.collections.set
 
 
 val KEY_FOLDERS = stringPreferencesKey("folders")
@@ -56,12 +56,11 @@ class ViewModelApp : ViewModel() {
     val mediaState = mutableStateOf(STATES.WAITING)
     val mediaFiles = mutableStateMapOf<LocalDateTime, MediaFile>()
     val mediaGroups = mutableStateMapOf<LocalDate, Map<LocalDateTime, MediaFile>>()
-    val mediaFile = mutableStateOf<MediaFile?>(null)
+    val mediaFileSelected = mutableStateOf<MediaFile?>(null)
 
     val menuFolderVisible = mutableStateOf(false)
 
     val mediaViewVisibleDetails = mutableStateOf(true)
-    val mediaViewRotates = mutableStateMapOf<MediaFile, Float>()
     val mediaViewShowHiddenMedia = mutableStateOf(false)
 
     val refreshHook = mutableIntStateOf(0)
@@ -176,7 +175,10 @@ class ViewModelApp : ViewModel() {
     }
 
     fun rotateMediaToCw(mediaFile: MediaFile, angle: Float? = null) {
-        mediaViewRotates[mediaFile] = (angle ?: (mediaViewRotates[mediaFile] ?: 0.0f) + 90.0f) % 360f
+        if (angle == null) mediaFile.rotate()
+        else mediaFile.angle = angle
+
+        refreshHook.intValue += 1
     }
 
     fun switchVisibleMediaFile(mediaFile: MediaFile) {

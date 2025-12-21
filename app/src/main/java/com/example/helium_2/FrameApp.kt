@@ -1,4 +1,4 @@
-// ОСНОВНАЯ ФОРМА
+/* Основная форма */
 
 package com.example.helium_2
 
@@ -81,7 +81,7 @@ import androidx.navigation.NavController
 import kotlinx.coroutines.launch
 
 
-const val VERSION = "15 дек 2025"
+const val VERSION = "21 дек 2025"
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -138,6 +138,7 @@ fun FrameApp(navController: NavController) {
 }
 
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FrameAppIndicatorPullToRefresh(
     modifier: Modifier = Modifier, state: PullToRefreshState, flag: Boolean

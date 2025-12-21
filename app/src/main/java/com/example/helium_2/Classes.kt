@@ -1,9 +1,12 @@
-// КЛАССЫ ДАННЫХ
+/* Модели данных */
 
 package com.example.helium_2
 
+import android.content.Context
+import android.graphics.BitmapFactory
 import android.net.Uri
 import androidx.documentfile.provider.DocumentFile
+
 import java.time.LocalDateTime
 
 
@@ -22,6 +25,8 @@ class MediaFile {
     private lateinit var _uri: Uri
     private var _isHidden: Boolean = false
     private var _isImage: Boolean = false
+    private var _size: Pair<Int, Int> = Pair(0, 0)
+    private var _angle: Float = 0f
 
     val documentFile: DocumentFile
         get() = _documentFile
@@ -43,6 +48,21 @@ class MediaFile {
 
     val mediaTime: String
         get() = _mediaTime
+
+    val size: Pair<Int, Int>
+        get() = if (angle in listOf(0f, 180f)) _size else Pair(_size.second, _size.first)
+
+    val ratio: Float
+        get() = (if (size.second == 0) 1.000f else size.first / size.second).toFloat()
+
+    var angle: Float
+        get() = _angle % 360f
+        set(value) {
+            _angle = value % 360f
+        }
+
+    val isRotated: Boolean
+        get() = angle in listOf(90f, 270f)
 
     constructor(documentFile: DocumentFile) {
         updateMediaFile(documentFile)
@@ -78,5 +98,20 @@ class MediaFile {
 
     fun delete(): Boolean {
         return documentFile.delete()
+    }
+
+    fun readSize(context: Context, updateMode: Boolean = false) {
+        if (updateMode && (size.first > 0)) return
+
+        context.contentResolver.openInputStream(uri)?.use { stream ->
+            val options = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+
+            BitmapFactory.decodeStream(stream, null, options)
+            _size = Pair(options.outWidth, options.outHeight)
+        }
+    }
+
+    fun rotate(toCCW: Boolean = false) {
+        _angle = (_angle + 90f * if (toCCW) -1 else 1) % 360f
     }
 }
