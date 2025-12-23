@@ -217,49 +217,69 @@ fun FrameViewerCardMediaImage(mediaFile: MediaFile?) {
     val isHidden = mediaFile.isHidden
     val isLandscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
 
+    var canvasSize by remember { mutableStateOf(Pair(0, 0)) }
     var frameSize by remember { mutableStateOf(Pair(0, 0)) }
 
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         key(mediaFile.angle) {
-            Box(modifier = Modifier
-                .fillMaxSize()
-                .onSizeChanged { frameSize = Pair(it.width, it.height) }
-                .pointerInput(showDetails, isLandscape) {
-                    if (!showDetails && !isLandscape) {
-                        detectTransformGestures(
-                            onGesture = { _, gesturePan, gestureZoom, _ ->
-                                val sizes = mediaFile.size.toList().map { it.toFloat() }
-
-                                scale = (scale * gestureZoom).coerceIn(
-                                    if (mediaFile.isRotated) (sizes.min() / sizes.max()) else 1.00f, 3.00f
-                                )
-                                offset += gesturePan
-                            })
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(color = Color.Black)
+                    .onSizeChanged { canvasSize = Pair(it.width, it.height) }
+                    .pointerInput(showDetails, isLandscape) {
+                        if (!showDetails && !isLandscape) {
+                            detectTransformGestures(
+                                onGesture = { _, gesturePan, gestureZoom, _ ->
+                                    scale = (scale * gestureZoom)
+                                    offset += gesturePan
+                                })
+                        }
                     }
-                }
-                .pointerInput(showDetails, isLandscape) {
-                    detectTapGestures(onTap = {
-                        showDetails = !showDetails
-                    }, onDoubleTap = {
-                        scale = 1.000f
-                        offset = Offset.Zero
+                    .pointerInput(showDetails, isLandscape) {
+                        detectTapGestures(onTap = {
+                            showDetails = !showDetails
+                        }, onDoubleTap = {
+                            scale = 1.000f
+                            offset = Offset.Zero
 
-                        viewModelApp.rotateMediaToCw(mediaFile, 0f)
-                    }, onLongPress = {
-                        viewModelApp.rotateMediaToCw(mediaFile)
-                    })
-                }) {
+                            viewModelApp.rotateMediaToCw(mediaFile, 0f)
+                        }, onLongPress = {
+                            viewModelApp.rotateMediaToCw(mediaFile)
+                        })
+                    }) {
                 AsyncImage(
                     modifier = Modifier
+                        .onSizeChanged { frameSize = Pair(it.width, it.height) }
                         .graphicsLayer {
+                            var imageSize = when (mediaFile.isRotated) {
+                                true -> frameSize.copy(first = frameSize.second, second = frameSize.first)
+                                false -> frameSize.copy()
+                            }
+
+                            val scaleMin = listOf(canvasSize.first / imageSize.first.toFloat(), canvasSize.second / imageSize.second.toFloat()).min()
+                            val scaleMax = 3.00f
+
+                            scale = scale.coerceIn(scaleMin, scaleMax)
+
+                            imageSize = imageSize.copy(first = (imageSize.first * scale).toInt(), second = (imageSize.second * scale).toInt())
+
+                            val offsetLimit = Offset(
+                                x = ((imageSize.first - canvasSize.first) / 2f).coerceAtLeast(0f) + 50f,
+                                y = ((imageSize.second - canvasSize.second) / 2f).coerceAtLeast(0f) + 50f
+                            )
+                            val offsetX = offset.x.coerceIn(-offsetLimit.x, offsetLimit.x)
+                            val offsetY = offset.y.coerceIn(-offsetLimit.y, offsetLimit.y)
+
                             scaleX = scale
                             scaleY = scale
-                            translationX = offset.x
-                            translationY = offset.y
+                            translationX = offsetX
+                            translationY = offsetY
                             rotationZ = mediaFile.angle
+
+                            offset = Offset(offsetX, offsetY)
                         }
-                        .align(Alignment.Center)
-                        .background(color = Color.Black),
+                        .align(Alignment.Center),
                     model = mediaFile.uri,
                     contentDescription = null,
                     contentScale = ContentScale.Fit,
