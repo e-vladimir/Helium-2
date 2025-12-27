@@ -1,4 +1,4 @@
-// ПРОСМОТР МЕДИА
+/* Форма просмотра медиа */
 
 package com.example.helium_2
 
@@ -7,7 +7,8 @@ import android.content.Intent
 import android.content.res.Configuration
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -31,6 +32,7 @@ import androidx.compose.material.icons.filled.Rotate90DegreesCw
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
+
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 
@@ -46,20 +48,27 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+
 import androidx.navigation.NavController
 
 import coil.compose.AsyncImage
@@ -78,10 +87,17 @@ fun shareMedia(context: Context, mediaFile: MediaFile) {
 
 @Composable
 fun FrameViewerCard(navController: NavController) {
+    val context = LocalContext.current
     val folderCurrent by viewModelApp.folderCurrent
-    val mediaFile by viewModelApp.mediaFile
+    val isLandscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
+    val mediaFile by viewModelApp.mediaFileSelected
     val mediaFiles = viewModelApp.mediaFiles
-    val mediaKeys by remember { derivedStateOf { viewModelApp.mediaFiles.keys.toList().sortedDescending() } }
+    val mediaKeys by remember {
+        derivedStateOf {
+            viewModelApp.mediaFiles.keys.toList().sortedDescending()
+        }
+    }
+    val showDetails by viewModelApp.mediaViewVisibleDetails
     var dialogDeleteMediaFileVisible by viewModelApp.dialogDeleteMediaFileVisible
 
     if (mediaFiles.isEmpty()) navController.navigate(SCREENS.FOLDER.screen) {
@@ -90,33 +106,32 @@ fun FrameViewerCard(navController: NavController) {
     }
 
     val pagerState = rememberPagerState(
-        initialPage = mediaKeys.indexOf(mediaFile?.fileTime),
-        pageCount = { mediaFiles.count() })
+        initialPage = mediaKeys.indexOf(mediaFile?.fileTime), pageCount = { mediaFiles.count() })
 
     Surface(
-        modifier = Modifier
-            .fillMaxSize()
+        modifier = Modifier.fillMaxSize()
     ) {
-        HorizontalPager(state = pagerState) { page ->
+        HorizontalPager(
+            state = pagerState, userScrollEnabled = showDetails || isLandscape
+        ) { page ->
             val pageFile = mediaFiles[mediaKeys[page]]
 
             if (dialogDeleteMediaFileVisible) {
                 AlertDialog(
-                    onDismissRequest = { dialogDeleteMediaFileVisible = false },
+                    onDismissRequest = { },
                     title = { Text("Удаление медиа-файла") },
                     text = { Text("${folderCurrent}\n${pageFile?.mediaTime}") },
                     confirmButton = {
                         Button(
                             onClick = {
                                 viewModelApp.deleteMediaFile(pageFile)
-                                dialogDeleteMediaFileVisible = false
                             }) {
                             Text("Удалить")
                         }
                     },
                     dismissButton = {
                         OutlinedButton(
-                            onClick = { dialogDeleteMediaFileVisible = false }) {
+                            onClick = { }) {
                             Text("Оставить")
                         }
                     })
@@ -127,6 +142,8 @@ fun FrameViewerCard(navController: NavController) {
                     .fillMaxSize()
                     .windowInsetsPadding(WindowInsets.safeDrawing)
             ) {
+                pageFile?.readSize(context, true)
+
                 FrameViewerCardInfo(mediaFile = pageFile)
                 FrameViewerCardMedia(mediaFile = pageFile, modifier = Modifier.weight(1.0f))
                 FrameViewerCardTools(mediaFile = pageFile)
@@ -160,7 +177,7 @@ fun FrameViewerCardInfo(mediaFile: MediaFile?) {
 
                     Text(
                         modifier = Modifier.fillMaxWidth(),
-                        text = mediaFile.mediaTime,
+                        text = mediaFile.size.toString(),
                         color = MaterialTheme.colorScheme.onSurface,
                         textAlign = TextAlign.Center
                     )
@@ -177,18 +194,12 @@ fun FrameViewerCardMedia(mediaFile: MediaFile?, modifier: Modifier) {
 
     if (showDetails and !isLandscape) {
         ElevatedCard(
-            modifier = modifier
-                .padding(top = 4.dp, start = 8.dp, end = 8.dp, bottom = 4.dp)
+            modifier = modifier.padding(top = 4.dp, start = 8.dp, end = 8.dp, bottom = 4.dp)
         ) {
             FrameViewerCardMediaImage(mediaFile = mediaFile)
         }
     } else {
-        Box(
-            modifier = modifier
-                .background(color = Color.Black)
-        ) {
-            FrameViewerCardMediaImage(mediaFile = mediaFile)
-        }
+        FrameViewerCardMediaImage(mediaFile = mediaFile)
     }
 }
 
@@ -196,28 +207,85 @@ fun FrameViewerCardMedia(mediaFile: MediaFile?, modifier: Modifier) {
 fun FrameViewerCardMediaImage(mediaFile: MediaFile?) {
     if (mediaFile == null) return
 
-    var showDetails by viewModelApp.mediaViewVisibleDetails
-    val mediaViewRotates = viewModelApp.mediaViewRotates
-    val isHidden = mediaFile.isHidden
-
     val refreshHook by viewModelApp.refreshHook
     if (refreshHook < 0) return
 
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        AsyncImage(
-            modifier = Modifier
-                .graphicsLayer { rotationZ = (mediaViewRotates[mediaFile] ?: 0.0f) }
-                .fillMaxSize()
-                .background(color = Color.Black)
-                .clickable { showDetails = !showDetails },
-            model = mediaFile.uri,
-            contentDescription = null,
-            contentScale = ContentScale.Fit,
+    var offset by remember { mutableStateOf(Offset.Zero) }
+    var scale by remember { mutableFloatStateOf(1.00f) }
+    var showDetails by viewModelApp.mediaViewVisibleDetails
 
-            )
+    val isHidden = mediaFile.isHidden
+    val isLandscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
+
+    var canvasSize by remember { mutableStateOf(Pair(0, 0)) }
+    var frameSize by remember { mutableStateOf(Pair(0, 0)) }
+
+    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        key(mediaFile.angle) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(color = Color.Black)
+                    .onSizeChanged { canvasSize = Pair(it.width, it.height) }
+                    .pointerInput(showDetails, isLandscape) {
+                        if (!showDetails && !isLandscape) {
+                            detectTransformGestures(
+                                onGesture = { _, gesturePan, gestureZoom, _ ->
+                                    scale = (scale * gestureZoom)
+                                    offset += gesturePan
+                                })
+                        }
+                    }
+                    .pointerInput(showDetails, isLandscape) {
+                        detectTapGestures(onTap = {
+                            showDetails = !showDetails
+                        }, onDoubleTap = {
+                            scale = 1.000f
+                            offset = Offset.Zero
+
+                            viewModelApp.rotateMediaToCw(mediaFile, 0f)
+                        }, onLongPress = {
+                            viewModelApp.rotateMediaToCw(mediaFile)
+                        })
+                    }) {
+                AsyncImage(
+                    modifier = Modifier
+                        .onSizeChanged { frameSize = Pair(it.width, it.height) }
+                        .graphicsLayer {
+                            var imageSize = when (mediaFile.isRotated) {
+                                true -> frameSize.copy(first = frameSize.second, second = frameSize.first)
+                                false -> frameSize.copy()
+                            }
+
+                            val scaleMin = listOf(canvasSize.first / imageSize.first.toFloat(), canvasSize.second / imageSize.second.toFloat()).min()
+                            val scaleMax = 3.00f
+
+                            scale = scale.coerceIn(scaleMin, scaleMax)
+
+                            imageSize = imageSize.copy(first = (imageSize.first * scale).toInt(), second = (imageSize.second * scale).toInt())
+
+                            val offsetLimit = Offset(
+                                x = ((imageSize.first - canvasSize.first) / 2f).coerceAtLeast(0f) + 50f,
+                                y = ((imageSize.second - canvasSize.second) / 2f).coerceAtLeast(0f) + 50f
+                            )
+                            val offsetX = offset.x.coerceIn(-offsetLimit.x, offsetLimit.x)
+                            val offsetY = offset.y.coerceIn(-offsetLimit.y, offsetLimit.y)
+
+                            scaleX = scale
+                            scaleY = scale
+                            translationX = offsetX
+                            translationY = offsetY
+                            rotationZ = mediaFile.angle
+
+                            offset = Offset(offsetX, offsetY)
+                        }
+                        .align(Alignment.Center),
+                    model = mediaFile.uri,
+                    contentDescription = null,
+                    contentScale = ContentScale.Fit,
+                )
+            }
+        }
 
         if (isHidden) {
             Icon(
@@ -250,8 +318,7 @@ fun FrameViewerCardTools(mediaFile: MediaFile?) {
     if (refreshHook < 0) return
 
     Card(
-        modifier = Modifier
-            .padding(top = 4.dp, start = 8.dp, end = 8.dp, bottom = 8.dp)
+        modifier = Modifier.padding(top = 4.dp, start = 8.dp, end = 8.dp, bottom = 8.dp)
     ) {
         Row(
             modifier = Modifier
@@ -263,34 +330,29 @@ fun FrameViewerCardTools(mediaFile: MediaFile?) {
         ) {
             IconButton(onClick = { viewModelApp.rotateMediaToCw(mediaFile) }) {
                 Icon(
-                    imageVector = Icons.Default.Rotate90DegreesCw,
-                    contentDescription = null
+                    imageVector = Icons.Default.Rotate90DegreesCw, contentDescription = null
                 )
             }
 
             IconButton(onClick = {
                 shareMedia(
-                    context = context,
-                    mediaFile = mediaFile
+                    context = context, mediaFile = mediaFile
                 )
             }) {
                 Icon(
-                    imageVector = Icons.Default.Share,
-                    contentDescription = null
+                    imageVector = Icons.Default.Share, contentDescription = null
                 )
             }
 
             IconButton(onClick = { viewModelApp.switchVisibleMediaFile(mediaFile) }) {
                 Icon(
-                    imageVector = if (isHidden) Icons.Default.VisibilityOff else Icons.Default.Visibility,
-                    contentDescription = null
+                    imageVector = if (isHidden) Icons.Default.VisibilityOff else Icons.Default.Visibility, contentDescription = null
                 )
             }
 
             IconButton(onClick = { viewModelApp.dialogDeleteMediaFileVisible.value = true }) {
                 Icon(
-                    imageVector = Icons.Default.DeleteOutline,
-                    contentDescription = null
+                    imageVector = Icons.Default.DeleteOutline, contentDescription = null
                 )
             }
         }

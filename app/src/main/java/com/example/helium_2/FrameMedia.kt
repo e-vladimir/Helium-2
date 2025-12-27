@@ -1,4 +1,4 @@
-// ГАЛЕРЕЯ
+/* Форма галереи медиа */
 
 package com.example.helium_2
 
@@ -26,6 +26,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 
 import androidx.navigation.NavController
@@ -52,7 +53,8 @@ fun FrameMedia(modifier: Modifier = Modifier, navController: NavController) {
 
             item(key = mediaGroup.toFormattedString()) {
                 MediaGroup(
-                    mediaFiles = mediaGroups[mediaGroup] ?: emptyMap(), navController = navController
+                    mediaFiles = mediaGroups[mediaGroup] ?: emptyMap(),
+                    navController = navController
                 )
 
                 Spacer(modifier = Modifier.height(8.dp))
@@ -120,6 +122,8 @@ fun MediaGrid(mediaFiles: Map<LocalDateTime, MediaFile>, navController: NavContr
 
 @Composable
 fun MediaItem(modifier: Modifier, mediaFile: MediaFile, navController: NavController) {
+    val context = LocalContext.current
+
     AsyncImage(
         model = mediaFile.uri,
         contentDescription = null,
@@ -129,9 +133,10 @@ fun MediaItem(modifier: Modifier, mediaFile: MediaFile, navController: NavContro
             .alpha(if (mediaFile.isHidden) 0.20f else 1.00f)
             .clip(RoundedCornerShape(4.dp))
             .clickable {
-                viewModelApp.mediaFile.value = mediaFile
+                viewModelApp.mediaFileSelected.value = mediaFile
                 navController.navigate(SCREENS.MEDIA.screen) {
                     launchSingleTop = true
                 }
+
             })
 }

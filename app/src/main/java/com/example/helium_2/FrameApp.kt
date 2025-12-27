@@ -1,4 +1,4 @@
-// ОСНОВНАЯ ФОРМА
+/* Основная форма */
 
 package com.example.helium_2
 
@@ -81,7 +81,7 @@ import androidx.navigation.NavController
 import kotlinx.coroutines.launch
 
 
-const val VERSION = "07 дек 2025"
+const val VERSION = "23 дек 2025"
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -138,6 +138,7 @@ fun FrameApp(navController: NavController) {
 }
 
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FrameAppIndicatorPullToRefresh(
     modifier: Modifier = Modifier, state: PullToRefreshState, flag: Boolean
@@ -352,6 +353,7 @@ fun ButtonFolder(folder: String, count: String) {
     var currentFolder by viewModelApp.folderCurrent
     val coroutineScope = rememberCoroutineScope()
     val selected = currentFolder == folder
+    val context = LocalContext.current
 
     NavigationDrawerItem(label = { Text(folder) }, selected = selected, icon = {
         Icon(

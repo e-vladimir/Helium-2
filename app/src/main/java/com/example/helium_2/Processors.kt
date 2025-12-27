@@ -1,4 +1,4 @@
-// ОБЪЕКТЫ
+/* Модели обработки */
 
 package com.example.helium_2
 
@@ -35,5 +35,4 @@ class FolderProcessor(val folderPath: Uri) {
     fun forgetFile(mediaFile: MediaFile) {
         files.remove(mediaFile)
     }
-
 }

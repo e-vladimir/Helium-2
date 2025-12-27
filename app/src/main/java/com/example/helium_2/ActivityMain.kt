@@ -1,3 +1,5 @@
+/* Базовая активность */
+
 package com.example.helium_2
 
 import android.content.Context
