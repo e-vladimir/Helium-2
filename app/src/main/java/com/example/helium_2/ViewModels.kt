@@ -101,8 +101,7 @@ class ViewModelApp : ViewModel() {
 
     fun forgetFolderCurrent(context: Context) {
         try {
-            folderPaths.remove(folderCurrent.value.toUri())
-
+            folderPaths.removeIf { folderUri -> uriToString(folderUri) == folderCurrent.value }
         } finally {
             viewModelScope.launch {
                 saveFolderPaths(context)

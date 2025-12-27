@@ -81,7 +81,7 @@ import androidx.navigation.NavController
 import kotlinx.coroutines.launch
 
 
-const val VERSION = "23 дек 2025"
+const val VERSION = "27 дек 2025"
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -353,7 +353,6 @@ fun ButtonFolder(folder: String, count: String) {
     var currentFolder by viewModelApp.folderCurrent
     val coroutineScope = rememberCoroutineScope()
     val selected = currentFolder == folder
-    val context = LocalContext.current
 
     NavigationDrawerItem(label = { Text(folder) }, selected = selected, icon = {
         Icon(
